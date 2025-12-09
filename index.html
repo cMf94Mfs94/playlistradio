@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Playlistradio</title>
+  <title>Playlist Radio</title>
   <style>
     * { box-sizing: border-box; }
     body { background: #f5f5f5; padding: 20px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 14px; color: #333; margin: 0; }
@@ -150,6 +150,10 @@
               <label class="form-label">Last.FM API Key (optional)</label>
               <input id="LASTFM_API_KEY" class="form-control" placeholder="Your Last.FM API key">
             </div>
+            <div class="mb-2">
+              <label class="form-label">Last.FM Username (only if you want your Last.FM Recommendations)</label>
+              <input id="LASTFM_USERNAME" class="form-control" placeholder="Your Last.FM username">
+            </div>
             <div class="text-muted small mb-2">Settings stored in browser localStorage. Do not share this browser instance with the keys present.</div>
             <button type="button" class="btn btn-primary" id="saveSettings">Save</button>
             <button type="button" class="btn btn-outline-secondary" id="cancelSettings">Cancel</button>
@@ -232,7 +236,7 @@
 
     <div class="card mb-3">
       <div class="card-body">
-        <h6 class="card-title">Current Playlist</h6>
+        <h6 class="card-title" id="tracksListTitle">Current Playlist</h6>
         <ul id="tracksList" class="list-unstyled mb-0"></ul>
       </div>
     </div>
@@ -336,7 +340,8 @@ function getConfig() {
       SIMULATION_MODE: localStorage.getItem('SIMULATION_MODE') || 'Yes',
       OPENAI_KEY: localStorage.getItem('OPENAI_KEY') || '',
       CHATGPT_MODEL: localStorage.getItem('CHATGPT_MODEL') || 'gpt-3.5-turbo',
-      LASTFM_API_KEY: localStorage.getItem('LASTFM_API_KEY') || ''
+      LASTFM_API_KEY: localStorage.getItem('LASTFM_API_KEY') || '',
+      LASTFM_USERNAME: localStorage.getItem('LASTFM_USERNAME') || ''
     };
   }
   return configData;
@@ -470,7 +475,7 @@ $('selectSection').addEventListener('click', () => {
 $('openSettings').addEventListener('click', () => { loadSettingsForm(); modal.show(); });
 $('saveSettings').addEventListener('click', () => {
   const cfg = {};
-  ['PLEX_SERVER_URL', 'PLEX_API_TOKEN', 'MUSIC_SECTION', 'NUMBER_OF_SIMILAR_TRACKS', 'NOT_PLAYED_IN_LAST_X_DAYS', 'OPENAI_KEY', 'CHATGPT_MODEL', 'LASTFM_API_KEY'].forEach(k => {
+  ['PLEX_SERVER_URL', 'PLEX_API_TOKEN', 'MUSIC_SECTION', 'NUMBER_OF_SIMILAR_TRACKS', 'NOT_PLAYED_IN_LAST_X_DAYS', 'OPENAI_KEY', 'CHATGPT_MODEL', 'LASTFM_API_KEY', 'LASTFM_USERNAME'].forEach(k => {
     cfg[k] = $(k).value;
   });
   saveConfig(cfg);
@@ -662,6 +667,44 @@ async function listPlaylists() {
   // Store existing playlist names for duplicate checking
   existingPlaylistNames = new Set(pls.map(p => (p.getAttribute('title') || '').trim().toLowerCase()));
   
+  // If Last.FM username is configured, inject virtual "Last FM Recos" playlist
+  const lastfmUsername = cfg.LASTFM_USERNAME?.trim();
+  if (lastfmUsername) {
+    // Insert virtual playlist into the array in alphabetical order
+    const virtualPlaylist = {
+      title: 'Last FM Recos',
+      ratingKey: '__lastfm_recos__',
+      summary: 'Your Last.FM recommended tracks',
+      isVirtual: true
+    };
+    
+    // Find insertion point (alphabetically)
+    let insertIndex = pls.findIndex(p => (p.getAttribute('title') || '').toLowerCase() > 'last fm recos'.toLowerCase());
+    if (insertIndex === -1) insertIndex = pls.length;
+    
+    // Convert to array format for consistent handling
+    const plsArray = pls.map(p => ({
+      title: p.getAttribute('title') || 'Untitled',
+      ratingKey: p.getAttribute('ratingKey'),
+      summary: p.getAttribute('summary') || '',
+      isVirtual: false,
+      element: p
+    }));
+    plsArray.splice(insertIndex, 0, virtualPlaylist);
+    
+    const container = $('playlists');
+    container.innerHTML = '';
+    plsArray.forEach(p => {
+      const item = document.createElement('div');
+      item.className = 'list-group-item d-flex justify-content-between align-items-center';
+      item.innerHTML = `<div><strong>${p.title}</strong><div class="small text-muted">${p.summary}</div></div><button class="btn btn-sm btn-primary" data-id="${p.ratingKey}">View</button>`;
+      container.appendChild(item);
+      item.querySelector('button').addEventListener('click', () => viewPlaylist(p.ratingKey, p.title));
+    });
+    setStatus('');
+    return;
+  }
+  
   const container = $('playlists');
   container.innerHTML = '';
   if (!pls.length) { container.innerHTML = '<div class="text-muted">No playlists found.</div>'; setStatus(''); return; }
@@ -684,11 +727,94 @@ async function viewPlaylist(id, title) {
   $('playlistsView').style.display = 'none';
   $('playlistDetailView').style.display = 'block';
   $('playlistTitle').textContent = title;
-  $('newTitle').value = title + ' Radio';
-  $('perTrack').value = cfg.NUMBER_OF_SIMILAR_TRACKS;
   $('tracksList').innerHTML = '';
   $('outputLog').textContent = '';
   $('notPlayedDays').value = cfg.NOT_PLAYED_IN_LAST_X_DAYS;
+  $('perTrack').value = cfg.NUMBER_OF_SIMILAR_TRACKS;
+  
+  // Check if this is the Last FM Recos virtual playlist
+  if (id === '__lastfm_recos__') {
+    // Special handling for Last FM Recos
+    $('newTitle').value = 'Last FM Recos'; // No "Radio" suffix
+    
+    // Set checkboxes: OpenAI off, Last.FM on by default
+    $('useOpenAI').checked = false;
+    $('useLastFM').checked = !!(cfg.LASTFM_API_KEY && cfg.LASTFM_API_KEY.trim());
+    
+    $('openaiPrompt').value = `I like the following song: {TRACK} by {ARTIST}\nName {N} tracks by different artists that I would also like. Provide each as 'Artist - Track Title' on its own line.`;
+    
+    setStatus('Fetching Last.FM recommendations...');
+    
+    // Fetch Last.FM recommendations
+    const lastfmUsername = cfg.LASTFM_USERNAME?.trim();
+    if (!lastfmUsername) {
+      setStatus('Error: Last.FM username not configured');
+      return;
+    }
+    
+    const lastfmUrl = `https://www.last.fm/player/station/user/${encodeURIComponent(lastfmUsername)}/recommended`;
+    console.log('Fetching Last.FM URL:', lastfmUrl);
+    
+    try {
+      const res = await fetch(lastfmUrl);
+      if (!res.ok) throw new Error(res.status + ' ' + res.statusText);
+      const data = await res.json();
+      
+      if (!data.playlist || !Array.isArray(data.playlist)) {
+        setStatus('Error: No recommendations found');
+        return;
+      }
+      
+      const tracks = data.playlist.map(track => ({
+        artist: track.artists && track.artists[0] ? track.artists[0].name : 'Unknown Artist',
+        title: track.name || 'Unknown Track',
+        ratingKey: null // Virtual tracks don't have rating keys
+      }));
+      
+      console.log('Found ' + tracks.length + ' Last.FM recommendations');
+      
+      // Store track count in DOM for checkbox listeners
+      $('playlistDetailView').dataset.trackCount = tracks.length;
+      
+      // Update the heading to "Last.FM Recommendations"
+      $('tracksListTitle').textContent = 'Last.FM Recommendations';
+      
+      tracks.forEach(t => {
+        const li = document.createElement('li');
+        li.textContent = `${t.artist} - ${t.title}`;
+        $('tracksList').appendChild(li);
+      });
+      
+      // Set up random tracks selection based on track count
+      const trackCount = tracks.length;
+      const similarTracksPerTrack = parseInt($('perTrack').value, 10) || cfg.NUMBER_OF_SIMILAR_TRACKS;
+      $('useRandomTracks').checked = trackCount > similarTracksPerTrack;
+      if (trackCount <= similarTracksPerTrack) {
+        $('randomTracksPercent').value = '';
+      } else {
+        $('randomTracksPercent').value = Math.min(Math.ceil((similarTracksPerTrack / trackCount) * 100), 100);
+      }
+      
+      // Update call summary after tracks are loaded
+      updateCallSummary(trackCount);
+      
+      console.log('Last.FM recommendations view complete');
+      setStatus('');
+      $('generateForm').dataset.playlistId = id;
+      $('generateForm').dataset.isLastfmRecos = 'true';
+      
+      // Store tracks in dataset for generation
+      $('generateForm').dataset.lastfmTracks = JSON.stringify(tracks);
+    } catch (err) {
+      console.log('Last.FM fetch error:', err);
+      setStatus('Error: ' + err.message);
+    }
+    
+    return;
+  }
+  
+  // Regular Plex playlist handling
+  $('newTitle').value = title + ' Radio';
   
   // Set checkboxes based on whether API keys are configured
   $('useOpenAI').checked = !!(cfg.OPENAI_KEY && cfg.OPENAI_KEY.trim());
@@ -712,6 +838,9 @@ async function viewPlaylist(id, title) {
   
   // Store track count in DOM for checkbox listeners
   $('playlistDetailView').dataset.trackCount = tracks.length;
+  
+  // Update the heading to "Current Playlist" for regular playlists
+  $('tracksListTitle').textContent = 'Current Playlist';
   
   tracks.forEach(t => {
     const artist = t.getAttribute('grandparentTitle') || '';
@@ -739,6 +868,7 @@ async function viewPlaylist(id, title) {
   console.log('Playlist view complete');
   setStatus('');
   $('generateForm').dataset.playlistId = id;
+  $('generateForm').dataset.isLastfmRecos = 'false';
 }
 
 // Generate playlist
@@ -746,7 +876,8 @@ $('generateForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const cfg = getConfig();
   const id = e.target.dataset.playlistId;
-  const newTitle = $('newTitle').value.trim() || ('Playlist ' + id + ' Radio');
+  const isLastfmRecos = e.target.dataset.isLastfmRecos === 'true';
+  const newTitle = $('newTitle').value.trim() || (isLastfmRecos ? 'Last FM Recos' : ('Playlist ' + id + ' Radio'));
   
   // Check if playlist name already exists
   if (existingPlaylistNames.has(newTitle.toLowerCase())) {
@@ -786,12 +917,20 @@ $('generateForm').addEventListener('submit', async (e) => {
   }
   out('');
 
-  // Fetch playlist tracks
-  const playlistUrl = cfg.PLEX_SERVER_URL.replace(/\/$/, '') + `/playlists/${encodeURIComponent(id)}/items?X-Plex-Token=${encodeURIComponent(cfg.PLEX_API_TOKEN)}`;
-  const res = await fetchUrl(playlistUrl);
-  if (!res.ok) { out('ERROR: Failed to fetch playlist — ' + res.error); return; }
-  const doc = xmlToDoc(res.body);
-  let tracks = Array.from(doc.querySelectorAll('Track')).map(t => ({ artist: t.getAttribute('grandparentTitle'), title: t.getAttribute('title'), ratingKey: t.getAttribute('ratingKey') }));
+  // Fetch playlist tracks (or use Last.FM recommendations)
+  let tracks;
+  if (isLastfmRecos) {
+    // Use Last.FM recommendations from dataset
+    tracks = JSON.parse(e.target.dataset.lastfmTracks || '[]');
+    out('Using Last.FM Recommendations');
+  } else {
+    // Fetch from Plex playlist
+    const playlistUrl = cfg.PLEX_SERVER_URL.replace(/\/$/, '') + `/playlists/${encodeURIComponent(id)}/items?X-Plex-Token=${encodeURIComponent(cfg.PLEX_API_TOKEN)}`;
+    const res = await fetchUrl(playlistUrl);
+    if (!res.ok) { out('ERROR: Failed to fetch playlist — ' + res.error); return; }
+    const doc = xmlToDoc(res.body);
+    tracks = Array.from(doc.querySelectorAll('Track')).map(t => ({ artist: t.getAttribute('grandparentTitle'), title: t.getAttribute('title'), ratingKey: t.getAttribute('ratingKey') }));
+  }
   
   // If random tracks is enabled and percent is set, randomly select a percentage of tracks
   if (useRandomTracks && randomTracksPercent) {
@@ -802,7 +941,7 @@ $('generateForm').addEventListener('submit', async (e) => {
     out('');
   }
   
-  const existingKeys = new Set(tracks.map(t => t.ratingKey));
+  const existingKeys = new Set(tracks.map(t => t.ratingKey).filter(k => k)); // Filter out null keys from Last.FM
 
   out('Playlist has ' + tracks.length + ' tracks');
   out('');
