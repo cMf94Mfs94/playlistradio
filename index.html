@@ -1,0 +1,1059 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Playlistradio</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { background: #f5f5f5; padding: 20px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 14px; color: #333; margin: 0; }
+    .container { max-width: 800px; margin: 0 auto; }
+    h1 { font-size: 28px; font-weight: 600; margin: 0; }
+    h3 { font-size: 20px; font-weight: 600; margin: 0 0 20px 0; }
+    h5 { font-size: 16px; font-weight: 600; margin: 0 0 10px 0; }
+    h6 { font-size: 14px; font-weight: 600; margin: 0 0 8px 0; }
+    
+    .d-flex { display: flex; }
+    .justify-content-between { justify-content: space-between; }
+    .align-items-center { align-items: center; }
+    .mb-4 { margin-bottom: 24px; }
+    .mb-3 { margin-bottom: 16px; }
+    .mb-2 { margin-bottom: 12px; }
+    .mb-0 { margin-bottom: 0; }
+    .mt-10px { margin-top: 10px; }
+    .text-muted { color: #6c757d; }
+    .text-center { text-align: center; }
+    .small { font-size: 12px; }
+    
+    .btn { padding: 8px 16px; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 500; display: inline-block; text-decoration: none; }
+    .btn:hover { opacity: 0.9; }
+    .btn-primary { background: #007bff; color: white; border-color: #007bff; }
+    .btn-success { background: #28a745; color: white; border-color: #28a745; }
+    .btn-outline-secondary { background: white; color: #6c757d; border-color: #6c757d; }
+    .btn-link { background: none; border: none; color: #007bff; padding: 0; cursor: pointer; text-decoration: underline; }
+    .btn-link:hover { color: #0056b3; }
+    .btn-sm { padding: 4px 12px; font-size: 12px; }
+    .btn-close { background: none; border: none; font-size: 20px; cursor: pointer; color: #999; }
+    .btn-close:hover { color: #000; }
+    
+    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); }
+    .modal.show { display: flex; align-items: center; justify-content: center; }
+    .modal.on-top { z-index: 1100; }
+    .modal-dialog { background: white; border-radius: 8px; width: 90%; max-width: 500px; }
+    .modal-content { width: 100%; }
+    .modal-header { padding: 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+    .modal-body { padding: 20px; max-height: 60vh; overflow-y: auto; }
+    .modal-footer { padding: 20px; border-top: 1px solid #eee; text-align: right; }
+    
+    .form-label { display: block; margin-bottom: 6px; font-weight: 500; }
+    .form-control { width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
+    .form-control:focus { outline: none; border-color: #007bff; box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25); }
+    .form-check { display: flex; align-items: center; }
+    .form-check-input { margin-right: 8px; cursor: pointer; }
+    .form-check-label { cursor: pointer; }
+    
+    .list-group { list-style: none; padding: 0; margin: 0; }
+    .list-group-item { padding: 12px; border: 1px solid #ddd; border-bottom: 0; background: white; }
+    .list-group-item:last-child { border-bottom: 1px solid #ddd; }
+    .list-group-item:hover { background: #f9f9f9; }
+    
+    .card { border: 1px solid #ddd; border-radius: 8px; background: white; overflow: hidden; }
+    .card-body { padding: 20px; }
+    .card-title { margin: 0 0 12px 0; font-weight: 600; }
+    
+    pre { background: #f9f9f9; padding: 12px; border-radius: 4px; max-height: 300px; overflow: auto; font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace; font-size: 12px; border: 1px solid #eee; }
+    
+    .row { display: flex; flex-wrap: wrap; margin: -12px; }
+    .col-md-6 { flex: 0 0 50%; padding: 12px; }
+    .col-md-3 { flex: 0 0 25%; padding: 12px; }
+    
+    @media (max-width: 768px) {
+      .col-md-6 { flex: 0 0 100%; }
+      .col-md-3 { flex: 0 0 100%; }
+    }
+    
+    .help-link { font-size: 12px; margin-left: 8px; }
+    .section-item { padding: 10px; margin: 8px 0; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; background: white; }
+    .section-item:hover { background: #f0f0f0; }
+    .section-item.selected { background: #e3f2fd; border-color: #007bff; }
+    .section-type { font-size: 11px; color: #666; text-transform: uppercase; font-weight: 600; }
+    .section-title { font-weight: 500; margin-top: 4px; }
+    .section-id { font-size: 12px; color: #999; margin-top: 2px; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Playlist Radio</h1>
+    <button id="openSettings" class="btn btn-outline-secondary">Settings</button>
+  </div>
+
+  <!-- Section Finder Modal -->
+  <div id="sectionFinderModal" class="modal">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Select Music Library Section</h5>
+          <button type="button" class="btn-close" onclick="sectionFinderModal.hide()"></button>
+        </div>
+        <div class="modal-body">
+          <div id="sectionFinderStatus" class="text-muted mb-3">Loading sections...</div>
+          <div id="sectionsList"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" onclick="sectionFinderModal.hide()">Cancel</button>
+          <button type="button" class="btn btn-primary" id="selectSection">Select</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="settingsModal" class="modal">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Settings</h5>
+          <button type="button" class="btn-close" onclick="modal.hide()"></button>
+        </div>
+        <div class="modal-body">
+          <form id="settingsForm">
+            <div class="mb-2">
+              <label class="form-label">Plex Server URL</label>
+              <input id="PLEX_SERVER_URL" class="form-control" placeholder="http://server:7007">
+            </div>
+            <div class="mb-2">
+              <label class="form-label">Plex API Token</label>
+              <input id="PLEX_API_TOKEN" class="form-control" placeholder="Your token">
+            </div>
+            <div class="mb-2">
+              <label class="form-label">Music Section ID <a href="#" id="findSectionLink" class="help-link">Help me find this</a></label>
+              <input id="MUSIC_SECTION" class="form-control" placeholder="e.g. 14">
+            </div>
+            <div class="mb-2">
+              <label class="form-label">Default similar tracks per track</label>
+              <input id="NUMBER_OF_SIMILAR_TRACKS" class="form-control" type="number" value="10">
+            </div>
+            <div class="mb-2">
+              <label class="form-label">Not played in last X days</label>
+              <input id="NOT_PLAYED_IN_LAST_X_DAYS" class="form-control" type="number" value="30">
+            </div>
+            <div class="mb-2">
+              <label class="form-label">OpenAI API Key</label>
+              <input id="OPENAI_KEY" class="form-control" placeholder="sk-...">
+            </div>
+            <div class="mb-2">
+              <label class="form-label">ChatGPT Model</label>
+              <input id="CHATGPT_MODEL" class="form-control" placeholder="gpt-3.5-turbo">
+            </div>
+            <div class="mb-2">
+              <label class="form-label">Last.FM API Key (optional)</label>
+              <input id="LASTFM_API_KEY" class="form-control" placeholder="Your Last.FM API key">
+            </div>
+            <div class="text-muted small mb-2">Settings stored in browser localStorage. Do not share this browser instance with the keys present.</div>
+            <button type="button" class="btn btn-primary" id="saveSettings">Save</button>
+            <button type="button" class="btn btn-outline-secondary" id="cancelSettings">Cancel</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Views -->
+  <div id="playlistsView">
+    <div id="status" class="mb-3 text-muted">Loading...</div>
+    <div id="playlists" class="list-group"></div>
+  </div>
+
+  <div id="playlistDetailView" style="display:none;">
+    <div class="mb-3">
+      <button id="backToList" class="btn btn-link"><< Back to Playlists</button>
+    </div>
+    <h3 id="playlistTitle"></h3>
+
+    <form id="generateForm" class="card mb-3 p-3">
+      <div class="row">
+        <div class="col-md-6 mb-2">
+          <label class="form-label">New playlist name</label>
+          <input id="newTitle" class="form-control">
+        </div>
+        <div class="col-md-3 mb-2">
+          <label class="form-label">Similar tracks per track</label>
+          <input id="perTrack" type="number" class="form-control" value="10">
+        </div>
+      </div>
+      
+      <div class="row">
+        <div class="col-md-6 mb-2">
+          <label class="form-label">APIs (select at least one):</label>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="useOpenAI" checked>
+            <label class="form-check-label" for="useOpenAI">OpenAI</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="useLastFM">
+            <label class="form-check-label" for="useLastFM">Last.FM</label>
+          </div>
+        </div>
+        <div class="col-md-3 mb-2">
+          <label class="form-label">Not played in last X days</label>
+          <input id="notPlayedDays" type="number" class="form-control" value="30">
+        </div>
+      </div>
+
+      <div class="mb-2">
+        <label class="form-label">OpenAI Prompt:</label>
+        <textarea id="openaiPrompt" class="form-control" rows="3" placeholder="I like the following song: {TRACK} by {ARTIST}..."></textarea>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6 mb-2">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="useRandomTracks">
+            <label class="form-check-label" for="useRandomTracks">Use a random selection of tracks from the current playlist</label>
+          </div>
+        </div>
+        <div class="col-md-3 mb-2">
+          <label class="form-label">Percentage of tracks to use</label>
+          <input id="randomTracksPercent" type="number" class="form-control" value="20" min="1" max="100">
+        </div>
+      </div>
+
+      <div class="mb-3" style="padding: 12px; background: #e8f4f8; border-radius: 4px; border-left: 4px solid #0066cc;">
+        <div id="callSummary" style="font-size: 13px; color: #333;">
+          <strong>API Calls:</strong> <span id="callCount">0 OpenAI + 0 Last.FM</span>
+        </div>
+      </div>
+
+      <div class="text-center">
+        <button type="submit" id="generateBtn" class="btn btn-success">Generate New Playlist</button>
+      </div>
+    </form>
+
+    <div class="card mb-3">
+      <div class="card-body">
+        <h6 class="card-title">Current Playlist</h6>
+        <ul id="tracksList" class="list-unstyled mb-0"></ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <h6 class="card-title">Output Log</h6>
+        <pre id="outputLog"></pre>
+      </div>
+    </div>
+
+    <div class="text-center mt-10px" id="downloadBtnContainer" style="display:none;">
+      <button type="button" id="downloadBtn" class="btn btn-primary">Download CreatePlaylist.py</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+// Simple modal implementation (replaces Bootstrap)
+class SimpleModal {
+  constructor(element) {
+    this.element = element;
+  }
+  show() {
+    this.element.classList.add('show');
+  }
+  hide() {
+    this.element.classList.remove('show');
+  }
+}
+
+const modal = new SimpleModal($('settingsModal'));
+const sectionFinderModal = new SimpleModal($('sectionFinderModal'));
+
+// Store existing playlist names for duplicate checking
+let existingPlaylistNames = new Set();
+
+// Store selected section for the section finder
+let selectedSectionId = null;
+
+// Handle Esc key to close modals
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    if (sectionFinderModal.element.classList.contains('show')) {
+      $('sectionFinderModal').classList.remove('on-top');
+      sectionFinderModal.hide();
+    } else if (modal.element.classList.contains('show')) {
+      modal.hide();
+    }
+  }
+});
+
+// Config management
+let configData = null;
+
+async function loadConfigFromFile() {
+  try {
+    // Check if running from file:// (browsers block fetch on file://)
+    if (window.location.protocol === 'file:') {
+      console.log('Running from file:// — config.txt cannot be loaded due to browser CORS policy. Use localStorage or Settings button.');
+      setStatus('');
+      return null;
+    }
+    
+    console.log('Attempting to load config.txt...');
+    setStatus('Loading config.txt...');
+    const res = await fetch('config.txt');
+    if (!res.ok) {
+      console.log('config.txt not found or not readable (status ' + res.status + '). Using localStorage.');
+      setStatus('config.txt not found. Using localStorage.');
+      return null;
+    }
+    const txt = await res.text();
+    console.log('config.txt loaded successfully');
+    const cfg = {};
+    txt.split('\n').forEach(line => {
+      line = line.trim();
+      if (!line || line.startsWith('#')) return;
+      const [k, ...rest] = line.split('=');
+      cfg[k.trim()] = rest.join('=').trim();
+    });
+    console.log('Parsed config:', cfg);
+    return cfg;
+  } catch (err) {
+    console.log('Error loading config.txt:', err);
+    setStatus('Error loading config.txt: ' + err.message);
+    return null;
+  }
+}
+
+function getConfig() {
+  if (!configData) {
+    configData = {
+      PLEX_SERVER_URL: localStorage.getItem('PLEX_SERVER_URL') || '',
+      PLEX_API_TOKEN: localStorage.getItem('PLEX_API_TOKEN') || '',
+      MUSIC_SECTION: localStorage.getItem('MUSIC_SECTION') || '',
+      NUMBER_OF_SIMILAR_TRACKS: parseInt(localStorage.getItem('NUMBER_OF_SIMILAR_TRACKS') || '10'),
+      NOT_PLAYED_IN_LAST_X_DAYS: parseInt(localStorage.getItem('NOT_PLAYED_IN_LAST_X_DAYS') || '30'),
+      SIMULATION_MODE: localStorage.getItem('SIMULATION_MODE') || 'Yes',
+      OPENAI_KEY: localStorage.getItem('OPENAI_KEY') || '',
+      CHATGPT_MODEL: localStorage.getItem('CHATGPT_MODEL') || 'gpt-3.5-turbo',
+      LASTFM_API_KEY: localStorage.getItem('LASTFM_API_KEY') || ''
+    };
+  }
+  return configData;
+}
+
+function saveConfig(cfg) {
+  Object.entries(cfg).forEach(([k, v]) => localStorage.setItem(k, v));
+}
+
+function loadSettingsForm() {
+  const cfg = getConfig();
+  Object.entries(cfg).forEach(([k, v]) => { const el = $(k); if (el) el.value = v; });
+}
+
+function setStatus(s) { $('status').textContent = s; }
+
+function xmlToDoc(xmlText) {
+  return new DOMParser().parseFromString(xmlText, 'application/xml');
+}
+
+// Update call summary based on checkboxes and track count
+function updateCallSummary(trackCount) {
+  const useOpenAI = $('useOpenAI').checked;
+  const useLastFM = $('useLastFM').checked;
+  const perTrack = parseInt($('perTrack').value, 10) || 0;
+  const useRandomTracks = $('useRandomTracks').checked;
+  const randomTracksPercentValue = $('randomTracksPercent').value.trim();
+  const randomTracksPercent = randomTracksPercentValue ? parseInt(randomTracksPercentValue, 10) : 100;
+  
+  // Calculate effective track count based on random selection
+  let effectiveTrackCount = trackCount;
+  if (useRandomTracks && randomTracksPercentValue) {
+    effectiveTrackCount = Math.max(1, Math.ceil(trackCount * (randomTracksPercent / 100)));
+  }
+  
+  // Note: The API call count is based on the number of playlist tracks (or random selection), not the per-track value
+  // The per-track value just determines how many similar tracks are requested per playlist track
+  const openaiCalls = useOpenAI ? effectiveTrackCount : 0;
+  const lastfmCalls = useLastFM ? effectiveTrackCount : 0;
+  
+  $('callCount').textContent = `${openaiCalls} OpenAI + ${lastfmCalls} Last.FM`;
+}
+
+// Section Finder functionality
+$('findSectionLink').addEventListener('click', async (e) => {
+  e.preventDefault();
+  
+  const serverUrl = $('PLEX_SERVER_URL').value.trim();
+  const token = $('PLEX_API_TOKEN').value.trim();
+  
+  if (!serverUrl || !token) {
+    alert('Please enter your Plex Server URL and API Token first.');
+    return;
+  }
+  
+  selectedSectionId = null;
+  $('sectionsList').innerHTML = '';
+  $('sectionFinderStatus').textContent = 'Loading sections...';
+  $('sectionFinderModal').classList.add('on-top');
+  sectionFinderModal.show();
+  
+  try {
+    const url = serverUrl.replace(/\/$/, '') + '/library/sections?X-Plex-Token=' + encodeURIComponent(token);
+    const res = await fetchUrl(url);
+    
+    if (!res.ok) {
+      $('sectionFinderStatus').textContent = 'Error: ' + res.error;
+      return;
+    }
+    
+    const doc = xmlToDoc(res.body);
+    const directories = Array.from(doc.querySelectorAll('Directory'));
+    
+    if (!directories.length) {
+      $('sectionFinderStatus').textContent = 'No library sections found.';
+      return;
+    }
+    
+    $('sectionFinderStatus').textContent = 'Click to select your music library:';
+    
+    directories.forEach(dir => {
+      const id = dir.getAttribute('key');
+      const title = dir.getAttribute('title');
+      const type = dir.getAttribute('type');
+      
+      const item = document.createElement('div');
+      item.className = 'section-item';
+      item.dataset.sectionId = id;
+      
+      // Highlight music sections
+      if (type === 'artist') {
+        item.style.borderColor = '#28a745';
+        item.style.borderWidth = '2px';
+      }
+      
+      item.innerHTML = `
+        <div class="section-type">${type === 'artist' ? 'MUSIC' : type.toUpperCase()}</div>
+        <div class="section-title">${title}</div>
+        <div class="section-id">Section ID: ${id}</div>
+      `;
+      
+      item.addEventListener('click', () => {
+        document.querySelectorAll('.section-item').forEach(el => el.classList.remove('selected'));
+        item.classList.add('selected');
+        selectedSectionId = id;
+        // Auto-select and close on click
+        $('MUSIC_SECTION').value = selectedSectionId;
+        $('sectionFinderModal').classList.remove('on-top');
+        sectionFinderModal.hide();
+      });
+      
+      $('sectionsList').appendChild(item);
+    });
+    
+  } catch (err) {
+    $('sectionFinderStatus').textContent = 'Error: ' + err.message;
+  }
+});
+
+$('selectSection').addEventListener('click', () => {
+  if (selectedSectionId) {
+    $('MUSIC_SECTION').value = selectedSectionId;
+    $('sectionFinderModal').classList.remove('on-top');
+    sectionFinderModal.hide();
+  } else {
+    alert('Please select a section first.');
+  }
+});
+
+// UI Navigation
+$('openSettings').addEventListener('click', () => { loadSettingsForm(); modal.show(); });
+$('saveSettings').addEventListener('click', () => {
+  const cfg = {};
+  ['PLEX_SERVER_URL', 'PLEX_API_TOKEN', 'MUSIC_SECTION', 'NUMBER_OF_SIMILAR_TRACKS', 'NOT_PLAYED_IN_LAST_X_DAYS', 'OPENAI_KEY', 'CHATGPT_MODEL', 'LASTFM_API_KEY'].forEach(k => {
+    cfg[k] = $(k).value;
+  });
+  saveConfig(cfg);
+  configData = null; // Reset cache so getConfig() re-reads from localStorage
+  modal.hide();
+  listPlaylists();
+});
+$('cancelSettings').addEventListener('click', () => {
+  modal.hide();
+});
+$('backToList').addEventListener('click', () => {
+  $('playlistsView').style.display = 'block';
+  $('playlistDetailView').style.display = 'none';
+  listPlaylists();
+});
+
+// Update call summary when checkboxes change
+$('useOpenAI').addEventListener('change', () => {
+  const trackCount = parseInt($('playlistDetailView').dataset.trackCount || '0');
+  updateCallSummary(trackCount);
+});
+$('useLastFM').addEventListener('change', () => {
+  const trackCount = parseInt($('playlistDetailView').dataset.trackCount || '0');
+  updateCallSummary(trackCount);
+});
+
+// Update call summary when per-track value changes
+$('perTrack').addEventListener('change', () => {
+  const trackCount = parseInt($('playlistDetailView').dataset.trackCount || '0');
+  updateCallSummary(trackCount);
+});
+$('perTrack').addEventListener('input', () => {
+  const trackCount = parseInt($('playlistDetailView').dataset.trackCount || '0');
+  updateCallSummary(trackCount);
+});
+
+// Update call summary when random tracks checkbox changes
+$('useRandomTracks').addEventListener('change', () => {
+  const trackCount = parseInt($('playlistDetailView').dataset.trackCount || '0');
+  updateCallSummary(trackCount);
+});
+
+// Update call summary when random tracks percent changes
+$('randomTracksPercent').addEventListener('change', () => {
+  const trackCount = parseInt($('playlistDetailView').dataset.trackCount || '0');
+  updateCallSummary(trackCount);
+});
+$('randomTracksPercent').addEventListener('input', () => {
+  const trackCount = parseInt($('playlistDetailView').dataset.trackCount || '0');
+  updateCallSummary(trackCount);
+});
+
+// Download createplaylist.py button
+$('downloadBtn').addEventListener('click', () => {
+  const cfg = getConfig();
+  const ratingKeys = [];
+  const logText = $('outputLog').textContent;
+  
+  // Extract rating keys from the output log (look for "TRACK_RATING_KEYS = [...]")
+  const match = logText.match(/TRACK_RATING_KEYS = \[(.*?)\]/);
+  if (match) {
+    const keysStr = match[1];
+    ratingKeys.push(...keysStr.split(',').map(k => parseInt(k.trim())).filter(k => !isNaN(k)));
+  }
+  
+  const newTitle = $('newTitle').value.trim() || 'New Playlist';
+  
+  const pythonScript = `import re
+from urllib.parse import unquote
+from plexapi.server import PlexServer
+from plexapi.playlist import Playlist
+
+# --- Configuration: UPDATE THESE VALUES ---
+# 1. Your Plex Server URL (e.g., 'http://192.168.1.10:32400')
+BASEURL = '${cfg.PLEX_SERVER_URL}' 
+
+# 2. Your Plex Token (The 'X-Plex-Token' value)
+PLEX_TOKEN = '${cfg.PLEX_API_TOKEN}' 
+
+# 3. Define the desired playlist title
+PLAYLIST_TITLE = '${newTitle}'
+
+# 4. Provide the list of numeric rating keys (track IDs)
+TRACK_RATING_KEYS = [${ratingKeys.join(', ')}]
+# -------------------------------------------------
+
+
+def create_plex_playlist_from_keys(baseurl, token, title, rating_keys):
+    """
+    Connects to Plex and creates a new playlist based on a list of track rating keys.
+    """
+    try:
+        # 1. Connect to Plex Server
+        print("Connecting to Plex server...")
+        plex = PlexServer(baseurl, token)
+        
+        # 2. Construct the Track Keys used by fetchItem()
+        # The key required by plex.fetchItem is in the format: /library/metadata/{id}
+        track_keys = [f"/library/metadata/{key}" for key in rating_keys]
+
+        # 3. Fetch the actual Plex media objects (tracks)
+        playlist_items = []
+        print("Fetching track metadata from Plex...")
+        
+        for track_key in track_keys:
+            try:
+                # Retrieve the actual track object using its key
+                track = plex.fetchItem(track_key)
+                playlist_items.append(track)
+                print(f"-> Found track: {track.title}")
+            except Exception as e:
+                print(f"Warning: Could not fetch item for key {track_key}. Skipping. Error: {e}")
+
+        if not playlist_items:
+            print("No valid tracks found to create the playlist.")
+            return
+
+        # 4. Create the Playlist
+        print(f"Creating playlist: **{title}** with {len(playlist_items)} tracks...")
+        
+        # Use the create method, passing the list of track objects
+        new_playlist = Playlist.create(
+            server=plex, 
+            title=title, 
+            items=playlist_items, 
+            smart=False
+        )
+
+        print("\\n---")
+        print(f"✓ Playlist created successfully!")
+        print(f"Title: **{new_playlist.title}**")
+        print(f"Total Tracks: **{new_playlist.leafCount}**")
+        print(f"Plex Key: {new_playlist.key}")
+
+    except Exception as e:
+        print(f"\\n✗ An error occurred: {e}")
+        print("Please check your BASEURL and PLEX_TOKEN.")
+
+if __name__ == '__main__':
+    create_plex_playlist_from_keys(BASEURL, PLEX_TOKEN, PLAYLIST_TITLE, TRACK_RATING_KEYS)
+`;
+
+  const blob = new Blob([pythonScript], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'createplaylist.py';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+});
+
+// Fetch helpers
+async function fetchUrl(url) {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(res.status + ' ' + res.statusText);
+    return { ok: true, body: await res.text() };
+  } catch (err) {
+    return { ok: false, error: err.message };
+  }
+}
+
+// List playlists
+async function listPlaylists() {
+  const cfg = getConfig();
+  console.log('listPlaylists called with config:', cfg);
+  if (!cfg.PLEX_SERVER_URL || !cfg.PLEX_API_TOKEN) { 
+    const msg = 'Click "Settings" button to configure your Plex server and OpenAI API key';
+    setStatus('⚠️ ' + msg); 
+    console.log('Missing PLEX_SERVER_URL or PLEX_API_TOKEN');
+    return; 
+  }
+  setStatus('Fetching playlists from ' + cfg.PLEX_SERVER_URL + '...');
+  const url = cfg.PLEX_SERVER_URL.replace(/\/$/, '') + '/playlists?X-Plex-Token=' + encodeURIComponent(cfg.PLEX_API_TOKEN);
+  console.log('Fetching URL:', url);
+  const res = await fetchUrl(url);
+  if (!res.ok) { 
+    setStatus('Error fetching playlists: ' + res.error); 
+    console.log('Fetch error:', res.error);
+    return; 
+  }
+  console.log('Playlists fetched successfully');
+  const doc = xmlToDoc(res.body);
+  const pls = Array.from(doc.querySelectorAll('Playlist'));
+  console.log('Found ' + pls.length + ' playlists');
+  
+  // Store existing playlist names for duplicate checking
+  existingPlaylistNames = new Set(pls.map(p => (p.getAttribute('title') || '').trim().toLowerCase()));
+  
+  const container = $('playlists');
+  container.innerHTML = '';
+  if (!pls.length) { container.innerHTML = '<div class="text-muted">No playlists found.</div>'; setStatus(''); return; }
+  pls.forEach(p => {
+    const title = p.getAttribute('title') || 'Untitled';
+    const rk = p.getAttribute('ratingKey');
+    const item = document.createElement('div');
+    item.className = 'list-group-item d-flex justify-content-between align-items-center';
+    item.innerHTML = `<div><strong>${title}</strong><div class="small text-muted">${p.getAttribute('summary') || ''}</div></div><button class="btn btn-sm btn-primary" data-id="${rk}">View</button>`;
+    container.appendChild(item);
+    item.querySelector('button').addEventListener('click', () => viewPlaylist(rk, title));
+  });
+  setStatus('');
+}
+
+// View playlist
+async function viewPlaylist(id, title) {
+  console.log('viewPlaylist called with id=' + id + ', title=' + title);
+  const cfg = getConfig();
+  $('playlistsView').style.display = 'none';
+  $('playlistDetailView').style.display = 'block';
+  $('playlistTitle').textContent = title;
+  $('newTitle').value = title + ' Radio';
+  $('perTrack').value = cfg.NUMBER_OF_SIMILAR_TRACKS;
+  $('tracksList').innerHTML = '';
+  $('outputLog').textContent = '';
+  $('notPlayedDays').value = cfg.NOT_PLAYED_IN_LAST_X_DAYS;
+  
+  // Set checkboxes based on whether API keys are configured
+  $('useOpenAI').checked = !!(cfg.OPENAI_KEY && cfg.OPENAI_KEY.trim());
+  $('useLastFM').checked = !!(cfg.LASTFM_API_KEY && cfg.LASTFM_API_KEY.trim());
+  
+  $('openaiPrompt').value = `I like the following song: {TRACK} by {ARTIST}\nName {N} tracks by different artists that I would also like. Provide each as 'Artist - Track Title' on its own line.`;
+  
+  setStatus('Fetching playlist tracks...');
+  const url = cfg.PLEX_SERVER_URL.replace(/\/$/, '') + `/playlists/${encodeURIComponent(id)}/items?X-Plex-Token=${encodeURIComponent(cfg.PLEX_API_TOKEN)}`;
+  console.log('Fetching playlist URL:', url);
+  const res = await fetchUrl(url);
+  if (!res.ok) { 
+    console.log('Fetch error:', res.error);
+    setStatus('Error: ' + res.error); 
+    return; 
+  }
+  console.log('Playlist fetched successfully');
+  const doc = xmlToDoc(res.body);
+  const tracks = Array.from(doc.querySelectorAll('Track'));
+  console.log('Found ' + tracks.length + ' tracks in playlist');
+  
+  // Store track count in DOM for checkbox listeners
+  $('playlistDetailView').dataset.trackCount = tracks.length;
+  
+  tracks.forEach(t => {
+    const artist = t.getAttribute('grandparentTitle') || '';
+    const track = t.getAttribute('title') || '';
+    const li = document.createElement('li');
+    li.textContent = `${artist} - ${track}`;
+    $('tracksList').appendChild(li);
+  });
+  
+  // Set up random tracks selection based on track count
+  const trackCount = tracks.length;
+  const similarTracksPerTrack = parseInt($('perTrack').value, 10) || cfg.NUMBER_OF_SIMILAR_TRACKS;
+  $('useRandomTracks').checked = trackCount > similarTracksPerTrack;
+  // For playlists with similarTracksPerTrack or fewer tracks, leave percent box blank
+  // For larger playlists, default to percentage that gives ~similarTracksPerTrack tracks (capped at 100%)
+  if (trackCount <= similarTracksPerTrack) {
+    $('randomTracksPercent').value = '';
+  } else {
+    $('randomTracksPercent').value = Math.min(Math.ceil((similarTracksPerTrack / trackCount) * 100), 100);
+  }
+  
+  // Update call summary after tracks are loaded
+  updateCallSummary(trackCount);
+  
+  console.log('Playlist view complete');
+  setStatus('');
+  $('generateForm').dataset.playlistId = id;
+}
+
+// Generate playlist
+$('generateForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const cfg = getConfig();
+  const id = e.target.dataset.playlistId;
+  const newTitle = $('newTitle').value.trim() || ('Playlist ' + id + ' Radio');
+  
+  // Check if playlist name already exists
+  if (existingPlaylistNames.has(newTitle.toLowerCase())) {
+    const confirmed = confirm('You already have a playlist with this name, are you sure you want to overwrite it?');
+    if (!confirmed) {
+      return; // User clicked No, cancel the generation
+    }
+  }
+  
+  const perTrack = parseInt($('perTrack').value, 10) || cfg.NUMBER_OF_SIMILAR_TRACKS;
+  const useOpenAI = $('useOpenAI').checked;
+  const useLastFM = $('useLastFM').checked;
+  const notPlayedDays = parseInt($('notPlayedDays').value, 10) || cfg.NOT_PLAYED_IN_LAST_X_DAYS;
+  const openaiPromptTemplate = $('openaiPrompt').value.trim();
+  const useRandomTracks = $('useRandomTracks').checked;
+  const randomTracksPercentValue = $('randomTracksPercent').value.trim();
+  const randomTracksPercent = randomTracksPercentValue ? parseInt(randomTracksPercentValue, 10) : null;
+  
+  const output = [];
+  function out(s) { output.push(s); $('outputLog').textContent = output.join('\n'); }
+
+  // Scroll to output log
+  $('outputLog').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  // Validate at least one source is selected
+  if (!useOpenAI && !useLastFM) {
+    out('❌ ERROR: Please select at least one track source (OpenAI or Last.FM)');
+    return;
+  }
+
+  out(`=== Generating: ${newTitle} ===`);
+  out(`Similar tracks per track: ${perTrack}`);
+  out(`Track sources: ${[useOpenAI && 'OpenAI', useLastFM && 'Last.FM'].filter(Boolean).join(', ')}`);
+  out(`Not played in last: ${notPlayedDays} days`);
+  if (useRandomTracks && randomTracksPercent) {
+    out(`Using random ${randomTracksPercent}% of tracks from playlist`);
+  }
+  out('');
+
+  // Fetch playlist tracks
+  const playlistUrl = cfg.PLEX_SERVER_URL.replace(/\/$/, '') + `/playlists/${encodeURIComponent(id)}/items?X-Plex-Token=${encodeURIComponent(cfg.PLEX_API_TOKEN)}`;
+  const res = await fetchUrl(playlistUrl);
+  if (!res.ok) { out('ERROR: Failed to fetch playlist — ' + res.error); return; }
+  const doc = xmlToDoc(res.body);
+  let tracks = Array.from(doc.querySelectorAll('Track')).map(t => ({ artist: t.getAttribute('grandparentTitle'), title: t.getAttribute('title'), ratingKey: t.getAttribute('ratingKey') }));
+  
+  // If random tracks is enabled and percent is set, randomly select a percentage of tracks
+  if (useRandomTracks && randomTracksPercent) {
+    const numToSelect = Math.max(1, Math.ceil(tracks.length * (randomTracksPercent / 100)));
+    const shuffled = [...tracks].sort(() => Math.random() - 0.5);
+    tracks = shuffled.slice(0, numToSelect);
+    out(`Selected ${tracks.length} random tracks (${randomTracksPercent}% of ${shuffled.length})`);
+    out('');
+  }
+  
+  const existingKeys = new Set(tracks.map(t => t.ratingKey));
+
+  out('Playlist has ' + tracks.length + ' tracks');
+  out('');
+
+  // Call OpenAI for each track (if enabled)
+  const allPairs = [];
+  if (useOpenAI) {
+    out('--- OpenAI Lookup ---');
+    for (const t of tracks) {
+      out(`>>> Requesting similar for: ${t.title} - ${t.artist}`);
+      const prompt = openaiPromptTemplate.replace(/{TRACK}/g, t.title).replace(/{ARTIST}/g, t.artist).replace(/{N}/g, perTrack);
+      let completionText = '';
+      try {
+        const openaiUrl = 'https://api.openai.com/v1/chat/completions';
+        const headers = { 'Content-Type': 'application/json' };
+        if (cfg.OPENAI_KEY) {
+          headers['Authorization'] = 'Bearer ' + cfg.OPENAI_KEY;
+        }
+        const r = await fetch(openaiUrl, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ model: cfg.CHATGPT_MODEL, messages: [{role:'user', content: prompt}], max_tokens:400 })
+        });
+        if (!r.ok) throw new Error(r.status + ' ' + r.statusText);
+        const j = await r.json();
+        completionText = j.choices ? (j.choices[0].message?.content || j.choices[0].text || JSON.stringify(j)) : (j.text || JSON.stringify(j));
+      } catch (err) {
+        out(`OpenAI ERROR: ${err.message}`);
+        continue;
+      }
+      out(completionText);
+      completionText.split(/\r?\n/).forEach(line => {
+        line = line.replace(/^\s*\d+[\)\.\-]*\s*/, '').trim();
+        if (!line) return;
+        const parts = line.split(/\s*-\s*/);
+        if (parts.length >= 2) {
+          allPairs.push({ artist: parts[0].trim(), track: parts.slice(1).join(' - ').trim() });
+        }
+      });
+      out('');
+    }
+  }
+
+  // Call Last.FM for each track (if enabled and API key is provided)
+  if (useLastFM && cfg.LASTFM_API_KEY && cfg.LASTFM_API_KEY.trim()) {
+    out('--- Last.FM Lookup ---');
+    for (const t of tracks) {
+      out(`>>> Requesting similar from Last.FM for: ${t.title} - ${t.artist}`);
+      try {
+        const lastfmUrl = `https://ws.audioscrobbler.com/2.0/?method=track.getsimilar&artist=${encodeURIComponent(t.artist)}&track=${encodeURIComponent(t.title)}&api_key=${cfg.LASTFM_API_KEY}&format=json&limit=${perTrack}`;
+        const r = await fetch(lastfmUrl);
+        if (!r.ok) throw new Error(r.status + ' ' + r.statusText);
+        const j = await r.json();
+        if (j.similartracks && j.similartracks.track && Array.isArray(j.similartracks.track)) {
+          j.similartracks.track.forEach(track => {
+            const artist = track.artist.name || '';
+            const trackName = track.name || '';
+            if (artist && trackName) {
+              allPairs.push({ artist: artist.trim(), track: trackName.trim() });
+              out(`  - ${artist} - ${trackName}`);
+            }
+          });
+        } else {
+          out(`  No similar tracks found`);
+        }
+      } catch (err) {
+        out(`Last.FM ERROR: ${err.message}`);
+      }
+    }
+    out('');
+  } else if (useLastFM && (!cfg.LASTFM_API_KEY || !cfg.LASTFM_API_KEY.trim())) {
+    out('⚠️ Last.FM selected but no API key configured in Settings');
+    out('');
+  }
+
+  out(`Total candidate pairs: ${allPairs.length}`);
+  out('');
+
+  // Search Plex for each candidate
+  const hits = [];
+  const seenHits = new Set();
+  const seenCanon = new Set();
+  for (const p of allPairs) {
+    out(`Searching Plex: ${p.artist} - ${p.track}`);
+    // Build query using URLSearchParams so spaces are encoded as '+' (form-style)
+    const params = new URLSearchParams();
+    params.set('type', '10');
+    params.set('artist.title', p.artist);
+    params.set('title', p.track);
+    params.set('X-Plex-Token', cfg.PLEX_API_TOKEN);
+    const sUrl = `${cfg.PLEX_SERVER_URL.replace(/\/$/, '')}/library/sections/${encodeURIComponent(cfg.MUSIC_SECTION)}/all?${params.toString()}`;
+    console.log('Search URL:', sUrl);
+    out(`  Debug URL: ${sUrl}`);
+    try {
+      const r = await fetchUrl(sUrl);
+      if (!r.ok) { out(`  Search failed: ${r.error}`); continue; }
+      const d = xmlToDoc(r.body);
+      const tracksFound = Array.from(d.querySelectorAll('Track'));
+      for (const tf of tracksFound) {
+        const rk = tf.getAttribute('ratingKey');
+        if (existingKeys.has(rk)) { out(`  - Skipping (already in playlist)`); continue; }
+        const lastViewed = parseInt(tf.getAttribute('lastViewedAt') || '0', 10);
+        const daysSinceLastView = lastViewed ? (Date.now()/1000 - lastViewed) / 86400 : Infinity;
+        if (daysSinceLastView < notPlayedDays) { out(`  - Skipping (played ${Math.floor(daysSinceLastView)} days ago)`); continue; }
+        const canonArtist = (p.artist || '').trim().toLowerCase().replace(/\s+/g, ' ');
+        const canonTrack = (p.track || '').trim().toLowerCase().replace(/\s+/g, ' ');
+        const canonKey = canonArtist + '|' + canonTrack;
+        if (seenHits.has(rk) || seenCanon.has(canonKey)) {
+          out(`  - Skipping duplicate candidate: ${p.artist} - ${p.track}`);
+        } else {
+          out(`  - Added: ${p.artist} - ${p.track}`);
+          hits.push({ ratingKey: rk, artist: p.artist, track: p.track });
+          seenHits.add(rk);
+          seenCanon.add(canonKey);
+        }
+      }
+    } catch (err) { out(`Search error: ${err.message}`); }
+  }
+
+  out('');
+  out(`Found ${hits.length} candidate tracks to add.`);
+  out('');
+
+  // Build rating keys (numeric IDs) for playlist service
+  const uniq = {};
+  hits.forEach(h => { uniq[h.ratingKey] = h; });
+  const ratingKeys = Object.keys(uniq).map(rk => parseInt(rk, 10));
+
+  out('');
+  out('Results:');
+  out(`Would create: ${newTitle}`);
+  out(`With ${ratingKeys.length} tracks:`);
+  Object.values(uniq).forEach(t => out(`  - ${t.artist} - ${t.track}`));
+  out('');
+  out(`TRACK_RATING_KEYS = [${ratingKeys.join(', ')}]`);
+  out('');
+  
+  // Generate createplaylist.py
+  const pythonScript = `import re
+from urllib.parse import unquote
+from plexapi.server import PlexServer
+from plexapi.playlist import Playlist
+
+# --- Configuration: UPDATE THESE VALUES ---
+# 1. Your Plex Server URL (e.g., 'http://192.168.1.10:32400')
+BASEURL = '${cfg.PLEX_SERVER_URL}' 
+
+# 2. Your Plex Token (The 'X-Plex-Token' value)
+PLEX_TOKEN = '${cfg.PLEX_API_TOKEN}' 
+
+# 3. Define the desired playlist title
+PLAYLIST_TITLE = '${newTitle}'
+
+# 4. Provide the list of numeric rating keys (track IDs)
+TRACK_RATING_KEYS = [${ratingKeys.join(', ')}]
+# -------------------------------------------------
+
+
+def create_plex_playlist_from_keys(baseurl, token, title, rating_keys):
+    """
+    Connects to Plex and creates a new playlist based on a list of track rating keys.
+    """
+    try:
+        # 1. Connect to Plex Server
+        print("Connecting to Plex server...")
+        plex = PlexServer(baseurl, token)
+        
+        # 2. Construct the Track Keys used by fetchItem()
+        # The key required by plex.fetchItem is in the format: /library/metadata/{id}
+        track_keys = [f"/library/metadata/{key}" for key in rating_keys]
+
+        # 3. Fetch the actual Plex media objects (tracks)
+        playlist_items = []
+        print("Fetching track metadata from Plex...")
+        
+        for track_key in track_keys:
+            try:
+                # Retrieve the actual track object using its key
+                track = plex.fetchItem(track_key)
+                playlist_items.append(track)
+                print(f"-> Found track: {track.title}")
+            except Exception as e:
+                print(f"Warning: Could not fetch item for key {track_key}. Skipping. Error: {e}")
+
+        if not playlist_items:
+            print("No valid tracks found to create the playlist.")
+            return
+
+        # 4. Create the Playlist
+        print(f"Creating playlist: **{title}** with {len(playlist_items)} tracks...")
+        
+        # Use the create method, passing the list of track objects
+        new_playlist = Playlist.create(
+            server=plex, 
+            title=title, 
+            items=playlist_items, 
+            smart=False
+        )
+
+        print("\\n---")
+        print(f"✓ Playlist created successfully!")
+        print(f"Title: **{new_playlist.title}**")
+        print(f"Total Tracks: **{new_playlist.leafCount}**")
+        print(f"Plex Key: {new_playlist.key}")
+
+    except Exception as e:
+        print(f"\\n✗ An error occurred: {e}")
+        print("Please check your BASEURL and PLEX_TOKEN.")
+
+if __name__ == '__main__':
+    create_plex_playlist_from_keys(BASEURL, PLEX_TOKEN, PLAYLIST_TITLE, TRACK_RATING_KEYS)
+`;
+
+  // Download the file
+  const blob = new Blob([pythonScript], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'createplaylist.py';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  
+  out('Generated createplaylist.py and started download.');
+  out('Install PlexAPI if needed: pip install PlexAPI');
+  out('Then run: python createplaylist.py');
+  
+  // Show the download button after generation completes
+  $('downloadBtnContainer').style.display = 'block';
+});
+
+// Init
+(async () => {
+  console.log('=== Page initialization started ===');
+  setStatus('Initializing...');
+  console.log('Calling loadConfigFromFile()...');
+  const fileCfg = await loadConfigFromFile();
+  console.log('loadConfigFromFile returned:', fileCfg);
+  if (fileCfg) {
+    console.log('File config loaded, updating configData');
+    configData = fileCfg;
+    // Update form fields to show file-based config
+    Object.entries(fileCfg).forEach(([k, v]) => { const el = $(k); if (el) el.value = v; });
+  }
+  console.log('Final config after merge:', getConfig());
+  console.log('Calling listPlaylists()...');
+  await listPlaylists();
+  console.log('=== Page initialization complete ===');
+  setStatus('');
+})();
+</script>
+</body>
+</html>
