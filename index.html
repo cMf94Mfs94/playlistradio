@@ -737,12 +737,20 @@ async function viewPlaylist(id, title) {
     
     // Fetch Last.FM recommendations
     const lastfmUsername = cfg.LASTFM_USERNAME?.trim();
+    const lastfmApiKey = cfg.LASTFM_API_KEY?.trim();
+    
     if (!lastfmUsername) {
       setStatus('Error: Last.FM username not configured');
       return;
     }
     
-    const lastfmUrl = `https://www.last.fm/player/station/user/${encodeURIComponent(lastfmUsername)}/recommended`;
+    if (!lastfmApiKey) {
+      setStatus('Error: Last.FM API Key required for recommendations');
+      $('tracksList').innerHTML = '<li style="color: #dc3545;">Last.FM API Key is required to fetch recommendations. Please add it in Settings.</li>';
+      return;
+    }
+    
+    const lastfmUrl = `https://ws.audioscrobbler.com/2.0/?method=user.getrecommendedartists&user=${encodeURIComponent(lastfmUsername)}&api_key=${encodeURIComponent(lastfmApiKey)}&format=json&limit=50`;
     console.log('Fetching Last.FM URL:', lastfmUrl);
     
     try {
@@ -750,16 +758,53 @@ async function viewPlaylist(id, title) {
       if (!res.ok) throw new Error(res.status + ' ' + res.statusText);
       const data = await res.json();
       
-      if (!data.playlist || !Array.isArray(data.playlist)) {
-        setStatus('Error: No recommendations found');
+      if (data.error) {
+        setStatus('Last.FM API Error: ' + (data.message || 'Unknown error'));
+        $('tracksList').innerHTML = `<li style="color: #dc3545;">Last.FM Error: ${data.message || 'Could not fetch recommendations'}</li>`;
         return;
       }
       
-      const tracks = data.playlist.map(track => ({
-        artist: track.artists && track.artists[0] ? (track.artists[0].name || track.artists[0]._name || 'Unknown Artist') : 'Unknown Artist',
-        title: track.name || track._name || 'Unknown Track',
-        ratingKey: null // Virtual tracks don't have rating keys
-      }));
+      // Get recommended artists, then fetch top tracks for each
+      const artists = data.recommendations?.artist || [];
+      if (!artists.length) {
+        setStatus('No recommendations found');
+        $('tracksList').innerHTML = '<li>No recommendations available. Try scrobbling more music to Last.FM!</li>';
+        return;
+      }
+      
+      console.log('Found ' + artists.length + ' recommended artists');
+      
+      // Fetch top tracks for each artist (limit to first 10 artists to avoid too many API calls)
+      const tracks = [];
+      const artistsToFetch = artists.slice(0, 10);
+      
+      for (const artist of artistsToFetch) {
+        const artistName = artist.name;
+        const topTracksUrl = `https://ws.audioscrobbler.com/2.0/?method=artist.gettoptracks&artist=${encodeURIComponent(artistName)}&api_key=${encodeURIComponent(lastfmApiKey)}&format=json&limit=3`;
+        
+        try {
+          const trackRes = await fetch(topTracksUrl);
+          if (!trackRes.ok) continue;
+          const trackData = await trackRes.json();
+          
+          const topTracks = trackData.toptracks?.track || [];
+          topTracks.forEach(track => {
+            tracks.push({
+              artist: artistName,
+              title: track.name || 'Unknown Track',
+              ratingKey: null
+            });
+          });
+        } catch (err) {
+          console.log('Error fetching tracks for artist:', artistName, err);
+        }
+      }
+      
+      if (!tracks.length) {
+        setStatus('No tracks found from recommended artists');
+        $('tracksList').innerHTML = '<li>Could not fetch tracks from recommended artists.</li>';
+        return;
+      }
       
       console.log('Found ' + tracks.length + ' Last.FM recommendations');
       console.log('First 3 tracks:', tracks.slice(0, 3));
