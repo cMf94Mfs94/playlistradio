@@ -750,7 +750,8 @@ async function viewPlaylist(id, title) {
       return;
     }
     
-    const lastfmUrl = `https://ws.audioscrobbler.com/2.0/?method=user.getrecommendedartists&user=${encodeURIComponent(lastfmUsername)}&api_key=${encodeURIComponent(lastfmApiKey)}&format=json&limit=50`;
+    // Fetch user's top tracks directly (personalized recommendations)
+    const lastfmUrl = `https://ws.audioscrobbler.com/2.0/?method=user.gettoptracks&user=${encodeURIComponent(lastfmUsername)}&api_key=${encodeURIComponent(lastfmApiKey)}&format=json&limit=50&period=1month`;
     console.log('Fetching Last.FM URL:', lastfmUrl);
     
     try {
@@ -764,39 +765,48 @@ async function viewPlaylist(id, title) {
         return;
       }
       
-      // Get recommended artists, then fetch top tracks for each
-      const artists = data.recommendations?.artist || [];
-      if (!artists.length) {
-        setStatus('No recommendations found');
-        $('tracksList').innerHTML = '<li>No recommendations available. Try scrobbling more music to Last.FM!</li>';
+      // Get user's top tracks
+      const topTracks = data.toptracks?.track || [];
+      if (!topTracks.length) {
+        setStatus('No tracks found');
+        $('tracksList').innerHTML = '<li>No tracks found. Try scrobbling more music to Last.FM!</li>';
         return;
       }
       
-      console.log('Found ' + artists.length + ' recommended artists');
+      console.log('Found ' + topTracks.length + ' top tracks');
       
-      // Fetch top tracks for each artist (limit to first 10 artists to avoid too many API calls)
+      // For each top track, get similar tracks (limit to first 10 to avoid too many API calls)
       const tracks = [];
-      const artistsToFetch = artists.slice(0, 10);
+      const seenTracks = new Set();
+      const tracksToProcess = topTracks.slice(0, 10);
       
-      for (const artist of artistsToFetch) {
-        const artistName = artist.name;
-        const topTracksUrl = `https://ws.audioscrobbler.com/2.0/?method=artist.gettoptracks&artist=${encodeURIComponent(artistName)}&api_key=${encodeURIComponent(lastfmApiKey)}&format=json&limit=3`;
+      for (const topTrack of tracksToProcess) {
+        const artistName = topTrack.artist?.name || topTrack.artist?.['#text'] || '';
+        const trackName = topTrack.name || '';
+        
+        if (!artistName || !trackName) continue;
+        
+        const similarUrl = `https://ws.audioscrobbler.com/2.0/?method=track.getsimilar&artist=${encodeURIComponent(artistName)}&track=${encodeURIComponent(trackName)}&api_key=${encodeURIComponent(lastfmApiKey)}&format=json&limit=5`;
         
         try {
-          const trackRes = await fetch(topTracksUrl);
-          if (!trackRes.ok) continue;
-          const trackData = await trackRes.json();
+          const similarRes = await fetch(similarUrl);
+          if (!similarRes.ok) continue;
+          const similarData = await similarRes.json();
           
-          const topTracks = trackData.toptracks?.track || [];
-          topTracks.forEach(track => {
-            tracks.push({
-              artist: artistName,
-              title: track.name || 'Unknown Track',
-              ratingKey: null
-            });
+          const similarTracks = similarData.similartracks?.track || [];
+          similarTracks.forEach(track => {
+            const trackKey = `${track.artist?.name}|${track.name}`.toLowerCase();
+            if (!seenTracks.has(trackKey)) {
+              tracks.push({
+                artist: track.artist?.name || 'Unknown Artist',
+                title: track.name || 'Unknown Track',
+                ratingKey: null
+              });
+              seenTracks.add(trackKey);
+            }
           });
         } catch (err) {
-          console.log('Error fetching tracks for artist:', artistName, err);
+          console.log('Error fetching similar tracks for:', trackName, err);
         }
       }
       
