@@ -733,128 +733,113 @@ async function viewPlaylist(id, title) {
     
     $('openaiPrompt').value = `I like the following song: {TRACK} by {ARTIST}\nName {N} tracks by different artists that I would also like. Provide each as 'Artist - Track Title' on its own line.`;
     
-    setStatus('Fetching Last.FM recommendations...');
+    setStatus('');
     
     // Fetch Last.FM recommendations
     const lastfmUsername = cfg.LASTFM_USERNAME?.trim();
-    const lastfmApiKey = cfg.LASTFM_API_KEY?.trim();
     
     if (!lastfmUsername) {
       setStatus('Error: Last.FM username not configured');
       return;
     }
     
-    if (!lastfmApiKey) {
-      setStatus('Error: Last.FM API Key required for recommendations');
-      $('tracksList').innerHTML = '<li style="color: #dc3545;">Last.FM API Key is required to fetch recommendations. Please add it in Settings.</li>';
-      return;
-    }
+    // Show instructions for manual paste
+    const lastfmUrl = `https://www.last.fm/player/station/user/${encodeURIComponent(lastfmUsername)}/recommended`;
     
-    // Fetch user's top tracks directly (personalized recommendations)
-    const lastfmUrl = `https://ws.audioscrobbler.com/2.0/?method=user.gettoptracks&user=${encodeURIComponent(lastfmUsername)}&api_key=${encodeURIComponent(lastfmApiKey)}&format=json&limit=50&period=1month`;
-    console.log('Fetching Last.FM URL:', lastfmUrl);
+    $('tracksListTitle').textContent = 'Last.FM Recommendations - Manual Import';
+    $('tracksList').innerHTML = `
+      <li style="margin-bottom: 12px;">
+        <strong>Step 1:</strong> Open this URL in a new tab:<br>
+        <a href="${lastfmUrl}" target="_blank" style="color: #007bff; word-break: break-all;">${lastfmUrl}</a>
+      </li>
+      <li style="margin-bottom: 12px;">
+        <strong>Step 2:</strong> Copy the entire JSON content from that page
+      </li>
+      <li style="margin-bottom: 12px;">
+        <strong>Step 3:</strong> Paste it into the box below and click "Load Tracks"
+      </li>
+      <li style="margin-top: 16px;">
+        <textarea id="lastfmJsonInput" style="width: 100%; min-height: 150px; font-family: monospace; font-size: 12px; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" placeholder="Paste Last.FM JSON here..."></textarea>
+      </li>
+      <li style="margin-top: 12px; text-align: center;">
+        <button type="button" id="loadLastfmJson" class="btn btn-primary">Load Tracks</button>
+      </li>
+      <li id="lastfmParseStatus" style="margin-top: 12px; color: #6c757d;"></li>
+    `;
     
-    try {
-      const res = await fetch(lastfmUrl);
-      if (!res.ok) throw new Error(res.status + ' ' + res.statusText);
-      const data = await res.json();
+    // Add event listener for the load button
+    $('loadLastfmJson').addEventListener('click', () => {
+      const jsonText = $('lastfmJsonInput').value.trim();
+      const statusEl = $('lastfmParseStatus');
       
-      if (data.error) {
-        setStatus('Last.FM API Error: ' + (data.message || 'Unknown error'));
-        $('tracksList').innerHTML = `<li style="color: #dc3545;">Last.FM Error: ${data.message || 'Could not fetch recommendations'}</li>`;
+      if (!jsonText) {
+        statusEl.textContent = '⚠️ Please paste JSON content first';
+        statusEl.style.color = '#dc3545';
         return;
       }
       
-      // Get user's top tracks
-      const topTracks = data.toptracks?.track || [];
-      if (!topTracks.length) {
-        setStatus('No tracks found');
-        $('tracksList').innerHTML = '<li>No tracks found. Try scrobbling more music to Last.FM!</li>';
-        return;
-      }
-      
-      console.log('Found ' + topTracks.length + ' top tracks');
-      
-      // For each top track, get similar tracks (limit to first 10 to avoid too many API calls)
-      const tracks = [];
-      const seenTracks = new Set();
-      const tracksToProcess = topTracks.slice(0, 10);
-      
-      for (const topTrack of tracksToProcess) {
-        const artistName = topTrack.artist?.name || topTrack.artist?.['#text'] || '';
-        const trackName = topTrack.name || '';
+      try {
+        const data = JSON.parse(jsonText);
         
-        if (!artistName || !trackName) continue;
-        
-        const similarUrl = `https://ws.audioscrobbler.com/2.0/?method=track.getsimilar&artist=${encodeURIComponent(artistName)}&track=${encodeURIComponent(trackName)}&api_key=${encodeURIComponent(lastfmApiKey)}&format=json&limit=5`;
-        
-        try {
-          const similarRes = await fetch(similarUrl);
-          if (!similarRes.ok) continue;
-          const similarData = await similarRes.json();
-          
-          const similarTracks = similarData.similartracks?.track || [];
-          similarTracks.forEach(track => {
-            const trackKey = `${track.artist?.name}|${track.name}`.toLowerCase();
-            if (!seenTracks.has(trackKey)) {
-              tracks.push({
-                artist: track.artist?.name || 'Unknown Artist',
-                title: track.name || 'Unknown Track',
-                ratingKey: null
-              });
-              seenTracks.add(trackKey);
-            }
-          });
-        } catch (err) {
-          console.log('Error fetching similar tracks for:', trackName, err);
+        if (!data.playlist || !Array.isArray(data.playlist)) {
+          statusEl.textContent = '❌ Invalid JSON format - missing "playlist" array';
+          statusEl.style.color = '#dc3545';
+          return;
         }
+        
+        const tracks = data.playlist.map(track => ({
+          artist: track.artists && track.artists[0] ? (track.artists[0].name || track.artists[0]._name || 'Unknown Artist') : 'Unknown Artist',
+          title: track.name || track._name || 'Unknown Track',
+          ratingKey: null
+        }));
+        
+        if (!tracks.length) {
+          statusEl.textContent = '⚠️ No tracks found in playlist';
+          statusEl.style.color = '#dc3545';
+          return;
+        }
+        
+        console.log('Parsed ' + tracks.length + ' tracks from Last.FM JSON');
+        console.log('First 3 tracks:', tracks.slice(0, 3));
+        
+        // Clear the input area and show loaded tracks
+        $('tracksListTitle').textContent = 'Last.FM Recommendations';
+        $('tracksList').innerHTML = '';
+        
+        tracks.forEach(t => {
+          const li = document.createElement('li');
+          li.textContent = `${t.artist} - ${t.title}`;
+          $('tracksList').appendChild(li);
+        });
+        
+        // Store track count in DOM for checkbox listeners
+        $('playlistDetailView').dataset.trackCount = tracks.length;
+        
+        // Set up random tracks selection based on track count
+        const trackCount = tracks.length;
+        const similarTracksPerTrack = parseInt($('perTrack').value, 10) || cfg.NUMBER_OF_SIMILAR_TRACKS;
+        $('useRandomTracks').checked = trackCount > similarTracksPerTrack;
+        if (trackCount <= similarTracksPerTrack) {
+          $('randomTracksPercent').value = '';
+        } else {
+          $('randomTracksPercent').value = Math.min(Math.ceil((similarTracksPerTrack / trackCount) * 100), 100);
+        }
+        
+        // Update call summary after tracks are loaded
+        updateCallSummary(trackCount);
+        
+        // Store tracks in dataset for generation
+        $('generateForm').dataset.playlistId = id;
+        $('generateForm').dataset.isLastfmRecos = 'true';
+        $('generateForm').dataset.lastfmTracks = JSON.stringify(tracks);
+        
+        setStatus(`✓ Loaded ${tracks.length} tracks from Last.FM`);
+      } catch (err) {
+        console.log('JSON parse error:', err);
+        statusEl.textContent = '❌ Invalid JSON format: ' + err.message;
+        statusEl.style.color = '#dc3545';
       }
-      
-      if (!tracks.length) {
-        setStatus('No tracks found from recommended artists');
-        $('tracksList').innerHTML = '<li>Could not fetch tracks from recommended artists.</li>';
-        return;
-      }
-      
-      console.log('Found ' + tracks.length + ' Last.FM recommendations');
-      console.log('First 3 tracks:', tracks.slice(0, 3));
-      
-      // Store track count in DOM for checkbox listeners
-      $('playlistDetailView').dataset.trackCount = tracks.length;
-      
-      // Update the heading to "Last.FM Recommendations"
-      $('tracksListTitle').textContent = 'Last.FM Recommendations';
-      
-      tracks.forEach(t => {
-        const li = document.createElement('li');
-        li.textContent = `${t.artist} - ${t.title}`;
-        $('tracksList').appendChild(li);
-      });
-      
-      // Set up random tracks selection based on track count
-      const trackCount = tracks.length;
-      const similarTracksPerTrack = parseInt($('perTrack').value, 10) || cfg.NUMBER_OF_SIMILAR_TRACKS;
-      $('useRandomTracks').checked = trackCount > similarTracksPerTrack;
-      if (trackCount <= similarTracksPerTrack) {
-        $('randomTracksPercent').value = '';
-      } else {
-        $('randomTracksPercent').value = Math.min(Math.ceil((similarTracksPerTrack / trackCount) * 100), 100);
-      }
-      
-      // Update call summary after tracks are loaded
-      updateCallSummary(trackCount);
-      
-      console.log('Last.FM recommendations view complete');
-      setStatus('');
-      $('generateForm').dataset.playlistId = id;
-      $('generateForm').dataset.isLastfmRecos = 'true';
-      
-      // Store tracks in dataset for generation
-      $('generateForm').dataset.lastfmTracks = JSON.stringify(tracks);
-    } catch (err) {
-      console.log('Last.FM fetch error:', err);
-      setStatus('Error: ' + err.message);
-    }
+    });
     
     return;
   }
