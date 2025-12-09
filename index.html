@@ -675,6 +675,9 @@ async function listPlaylists() {
     isVirtual: false
   }));
   
+  // Sort all playlists alphabetically (case-insensitive)
+  plsArray.sort((a, b) => a.title.toLowerCase().localeCompare(b.title.toLowerCase()));
+  
   // If Last.FM username is configured, inject virtual "Last FM Recos" playlist
   const lastfmUsername = cfg.LASTFM_USERNAME?.trim();
   if (lastfmUsername) {
@@ -690,6 +693,7 @@ async function listPlaylists() {
     if (insertIndex === -1) insertIndex = plsArray.length;
     
     plsArray.splice(insertIndex, 0, virtualPlaylist);
+    console.log('Inserted Last FM Recos at index', insertIndex, 'of', plsArray.length);
   }
   
   const container = $('playlists');
@@ -758,6 +762,7 @@ async function viewPlaylist(id, title) {
       }));
       
       console.log('Found ' + tracks.length + ' Last.FM recommendations');
+      console.log('First 3 tracks:', tracks.slice(0, 3));
       
       // Store track count in DOM for checkbox listeners
       $('playlistDetailView').dataset.trackCount = tracks.length;
