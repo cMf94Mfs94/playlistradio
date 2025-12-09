@@ -752,8 +752,8 @@ async function viewPlaylist(id, title) {
       }
       
       const tracks = data.playlist.map(track => ({
-        artist: track.artists && track.artists[0] ? track.artists[0].name : 'Unknown Artist',
-        title: track.name || 'Unknown Track',
+        artist: track.artists && track.artists[0] ? (track.artists[0].name || track.artists[0]._name || 'Unknown Artist') : 'Unknown Artist',
+        title: track.name || track._name || 'Unknown Track',
         ratingKey: null // Virtual tracks don't have rating keys
       }));
       
