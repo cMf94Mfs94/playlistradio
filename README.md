@@ -8,6 +8,7 @@ Playlist Radio analyzes tracks in your existing Plex playlists and uses AI to re
 
 ## Features
 
+- **Last.FM Recommendations Integration**: Automatically fetch your personalized Last.FM recommendations (up to 100 tracks across 5 pages)
 - **Dual API Support**: Use OpenAI, Last.FM, or both simultaneously for recommendations
 - **Smart Track Selection**: Option to use a random percentage of tracks from large playlists
 - **Customizable Prompts**: Full control over OpenAI prompts with variable substitution
@@ -49,6 +50,7 @@ Playlist Radio analyzes tracks in your existing Plex playlists and uses AI to re
 #### Optional Settings
 
 - **Last.FM API Key**: Enable Last.FM as an additional recommendation source
+- **Last.FM Username**: Enable the "Last FM Recos" virtual playlist feature (fetches your personalized recommendations)
 
 4. Click **Save** to store settings in your browser's localStorage
 
@@ -56,11 +58,48 @@ Playlist Radio analyzes tracks in your existing Plex playlists and uses AI to re
 
 ### Basic Workflow
 
-1. **Select a Playlist**: Click "View" next to any playlist from the main list
+1. **Select a Playlist**: Click "View" next to any playlist from the main list (or use "Last FM Recos" if configured)
 2. **Configure Options**: Adjust settings for this specific generation
 3. **Generate**: Click "Generate New Playlist" button
 4. **Download Script**: The browser will automatically download `createplaylist.py`
 5. **Run Script**: Execute `python createplaylist.py` to create the playlist in Plex
+
+### Last.FM Recommendations Feature
+
+If you've configured your **Last.FM Username** in Settings, a special virtual playlist called **"Last FM Recos"** will appear in your playlist list.
+
+#### How It Works
+
+1. **Automatic Fetching**: When you click "View" on "Last FM Recos", the app automatically:
+   - Fetches your personalized Last.FM recommendations via CORS proxy
+   - Loads 5 pages of recommendations (approximately 60-100 unique tracks)
+   - Uses 3-second delays between page fetches to avoid rate limiting
+   - Deduplicates tracks across all pages
+
+2. **Display**: All unique tracks are displayed in the track list
+
+3. **Generation Options**:
+   - **No APIs Selected**: Searches your Plex library for the imported Last.FM recommendations directly
+   - **OpenAI Selected**: Uses the Last.FM tracks as seeds to find similar tracks via OpenAI
+   - **Last.FM API Selected**: Uses the Last.FM tracks as seeds to find similar tracks via Last.FM API
+   - **Both APIs**: Combines all sources (imported tracks + OpenAI results + Last.FM API results)
+
+#### Benefits
+
+- **No Manual Work**: Eliminates the need to manually copy/paste JSON from Last.FM
+- **Maximum Variety**: Fetches 5 different pages of recommendations for diverse results
+- **Flexible Usage**: Can use recommendations directly or as seeds for further discovery
+- **Smart Integration**: Works seamlessly with random track selection and other features
+
+#### Example Workflow
+
+1. Configure Last.FM Username in Settings: `yourusername`
+2. Click "View" on "Last FM Recos" in the playlist list
+3. Wait ~15 seconds while it fetches 5 pages of recommendations
+4. Review the 60-100 tracks loaded
+5. Optionally adjust "Random track selection" to use a percentage
+6. Enable/disable OpenAI and Last.FM API as desired
+7. Generate playlist to find these tracks (and similar ones) in your Plex library
 
 ### Generation Options
 
@@ -207,13 +246,15 @@ The output log shows:
 
 ## Technical Details
 
-- **Single File Application**: Everything in `index.html` (920 lines)
+- **Single File Application**: Everything in `index.html` (~1,250 lines)
 - **No Dependencies**: Pure vanilla JavaScript, no frameworks
 - **Storage**: Browser localStorage for configuration persistence
+- **CORS Proxy**: Uses `corsproxy.io` to fetch Last.FM recommendations (bypasses browser CORS restrictions)
 - **APIs Used**:
   - Plex Media Server XML API
   - OpenAI Chat Completions API
   - Last.FM Track Similarity API
+  - Last.FM Player Station API (for personalized recommendations)
 
 ## License
 

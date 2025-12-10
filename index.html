@@ -727,8 +727,8 @@ async function viewPlaylist(id, title) {
     // Special handling for Last FM Recos
     $('newTitle').value = 'Last FM Recos'; // No "Radio" suffix
     
-    // Set checkboxes: OpenAI off, Last.FM on by default
-    $('useOpenAI').checked = false;
+    // Set checkboxes based on whether API keys are configured
+    $('useOpenAI').checked = !!(cfg.OPENAI_KEY && cfg.OPENAI_KEY.trim());
     $('useLastFM').checked = !!(cfg.LASTFM_API_KEY && cfg.LASTFM_API_KEY.trim());
     
     $('openaiPrompt').value = `I like the following song: {TRACK} by {ARTIST}\nName {N} tracks by different artists that I would also like. Provide each as 'Artist - Track Title' on its own line.`;
@@ -743,80 +743,83 @@ async function viewPlaylist(id, title) {
       return;
     }
     
-    // Show instructions for manual paste
-    const lastfmUrl = `https://www.last.fm/player/station/user/${encodeURIComponent(lastfmUsername)}/recommended`;
+    // Automatically fetch recommendations using CORS proxy
+    $('tracksListTitle').textContent = 'Last.FM Recommendations';
+    $('tracksList').innerHTML = '<li style="color: #6c757d;">Loading recommendations from Last.FM...</li>';
     
-    $('tracksListTitle').textContent = 'Last.FM Recommendations - Manual Import';
-    $('tracksList').innerHTML = `
-      <li style="margin-bottom: 12px;">
-        <strong>Step 1:</strong> Open this URL in a new tab:<br>
-        <a href="${lastfmUrl}" target="_blank" style="color: #007bff; word-break: break-all;">${lastfmUrl}</a>
-      </li>
-      <li style="margin-bottom: 12px;">
-        <strong>Step 2:</strong> Copy the entire JSON content from that page
-      </li>
-      <li style="margin-bottom: 12px;">
-        <strong>Step 3:</strong> Paste it into the box below and click "Load Tracks"
-      </li>
-      <li style="margin-top: 16px;">
-        <textarea id="lastfmJsonInput" style="width: 100%; min-height: 150px; font-family: monospace; font-size: 12px; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" placeholder="Paste Last.FM JSON here..."></textarea>
-      </li>
-      <li style="margin-top: 12px; text-align: center;">
-        <button type="button" id="loadLastfmJson" class="btn btn-primary">Load Tracks</button>
-      </li>
-      <li id="lastfmParseStatus" style="margin-top: 12px; color: #6c757d;"></li>
-    `;
-    
-    // Add event listener for the load button
-    $('loadLastfmJson').addEventListener('click', () => {
-      const jsonText = $('lastfmJsonInput').value.trim();
-      const statusEl = $('lastfmParseStatus');
-      
-      if (!jsonText) {
-        statusEl.textContent = '⚠️ Please paste JSON content first';
-        statusEl.style.color = '#dc3545';
-        return;
-      }
+    // Function to fetch recommendations with delay
+    async function fetchLastfmRecommendations() {
+      const allTracks = [];
+      const seenTracks = new Set();
+      const lastfmUrl = `https://www.last.fm/player/station/user/${encodeURIComponent(lastfmUsername)}/recommended`;
+      const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(lastfmUrl)}`;
       
       try {
-        const data = JSON.parse(jsonText);
+        // Fetch 5 pages with 3 second delays
+        for (let i = 1; i <= 5; i++) {
+          $('tracksList').innerHTML = `<li style="color: #6c757d;">Fetching page ${i} of 5...</li>`;
+          
+          // Build URL with page parameter (page 1 has no parameter)
+          const pageParam = i === 1 ? '' : `?page=${i}`;
+          const pageUrl = `${lastfmUrl}${pageParam}`;
+          const pageProxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(pageUrl)}`;
+          
+          const res = await fetch(pageProxyUrl);
+          if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+          
+          const data = await res.json();
+          
+          if (!data.playlist || !Array.isArray(data.playlist)) {
+            throw new Error('Invalid JSON format - missing "playlist" array');
+          }
+          
+          // Process tracks from this batch
+          data.playlist.forEach(track => {
+            const artist = track.artists && track.artists[0] ? (track.artists[0].name || track.artists[0]._name || 'Unknown Artist') : 'Unknown Artist';
+            const title = track.name || track._name || 'Unknown Track';
+            
+            // Create a canonical key for deduplication (lowercase, normalized)
+            const canonKey = `${artist.toLowerCase().trim()}|${title.toLowerCase().trim()}`;
+            
+            if (!seenTracks.has(canonKey)) {
+              seenTracks.add(canonKey);
+              allTracks.push({
+                artist: artist,
+                title: title,
+                ratingKey: null
+              });
+            }
+          });
+          
+          console.log(`Page ${i}: Got ${data.playlist.length} tracks, total unique: ${allTracks.length}`);
+          
+          // Wait 3 seconds before next fetch (except after the last one)
+          if (i < 5) {
+            $('tracksList').innerHTML = `<li style="color: #6c757d;">Fetched page ${i} of 5. Waiting 3 seconds...</li>`;
+            await new Promise(resolve => setTimeout(resolve, 3000));
+          }
+        }
         
-        if (!data.playlist || !Array.isArray(data.playlist)) {
-          statusEl.textContent = '❌ Invalid JSON format - missing "playlist" array';
-          statusEl.style.color = '#dc3545';
+        if (!allTracks.length) {
+          $('tracksList').innerHTML = '<li style="color: #dc3545;">⚠️ No tracks found in recommendations</li>';
           return;
         }
         
-        const tracks = data.playlist.map(track => ({
-          artist: track.artists && track.artists[0] ? (track.artists[0].name || track.artists[0]._name || 'Unknown Artist') : 'Unknown Artist',
-          title: track.name || track._name || 'Unknown Track',
-          ratingKey: null
-        }));
+        console.log('Total unique tracks loaded:', allTracks.length);
         
-        if (!tracks.length) {
-          statusEl.textContent = '⚠️ No tracks found in playlist';
-          statusEl.style.color = '#dc3545';
-          return;
-        }
-        
-        console.log('Parsed ' + tracks.length + ' tracks from Last.FM JSON');
-        console.log('First 3 tracks:', tracks.slice(0, 3));
-        
-        // Clear the input area and show loaded tracks
-        $('tracksListTitle').textContent = 'Last.FM Recommendations';
+        // Display loaded tracks
         $('tracksList').innerHTML = '';
-        
-        tracks.forEach(t => {
+        allTracks.forEach(t => {
           const li = document.createElement('li');
           li.textContent = `${t.artist} - ${t.title}`;
           $('tracksList').appendChild(li);
         });
         
         // Store track count in DOM for checkbox listeners
-        $('playlistDetailView').dataset.trackCount = tracks.length;
+        $('playlistDetailView').dataset.trackCount = allTracks.length;
         
         // Set up random tracks selection based on track count
-        const trackCount = tracks.length;
+        const trackCount = allTracks.length;
         const similarTracksPerTrack = parseInt($('perTrack').value, 10) || cfg.NUMBER_OF_SIMILAR_TRACKS;
         $('useRandomTracks').checked = trackCount > similarTracksPerTrack;
         if (trackCount <= similarTracksPerTrack) {
@@ -831,15 +834,19 @@ async function viewPlaylist(id, title) {
         // Store tracks in dataset for generation
         $('generateForm').dataset.playlistId = id;
         $('generateForm').dataset.isLastfmRecos = 'true';
-        $('generateForm').dataset.lastfmTracks = JSON.stringify(tracks);
+        $('generateForm').dataset.lastfmTracks = JSON.stringify(allTracks);
         
-        setStatus(`✓ Loaded ${tracks.length} tracks from Last.FM`);
+        setStatus(`✓ Loaded ${allTracks.length} unique tracks from Last.FM`);
+        
       } catch (err) {
-        console.log('JSON parse error:', err);
-        statusEl.textContent = '❌ Invalid JSON format: ' + err.message;
-        statusEl.style.color = '#dc3545';
+        console.log('Last.FM fetch error:', err);
+        $('tracksList').innerHTML = `<li style="color: #dc3545;">❌ Error loading recommendations: ${err.message}</li>`;
+        setStatus('Error loading Last.FM recommendations');
       }
-    });
+    }
+    
+    // Start fetching
+    fetchLastfmRecommendations();
     
     return;
   }
@@ -933,15 +940,19 @@ $('generateForm').addEventListener('submit', async (e) => {
   // Scroll to output log
   $('outputLog').scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-  // Validate at least one source is selected
-  if (!useOpenAI && !useLastFM) {
+  // Validate at least one source is selected (except for Last.FM Recos where we use imported tracks)
+  if (!useOpenAI && !useLastFM && !isLastfmRecos) {
     out('❌ ERROR: Please select at least one track source (OpenAI or Last.FM)');
     return;
   }
 
   out(`=== Generating: ${newTitle} ===`);
   out(`Similar tracks per track: ${perTrack}`);
-  out(`Track sources: ${[useOpenAI && 'OpenAI', useLastFM && 'Last.FM'].filter(Boolean).join(', ')}`);
+  if (isLastfmRecos && !useOpenAI && !useLastFM) {
+    out(`Using imported Last.FM tracks directly (no additional API lookups)`);
+  } else {
+    out(`Track sources: ${[useOpenAI && 'OpenAI', useLastFM && 'Last.FM'].filter(Boolean).join(', ')}`);
+  }
   out(`Not played in last: ${notPlayedDays} days`);
   if (useRandomTracks && randomTracksPercent) {
     out(`Using random ${randomTracksPercent}% of tracks from playlist`);
@@ -979,6 +990,17 @@ $('generateForm').addEventListener('submit', async (e) => {
 
   // Call OpenAI for each track (if enabled)
   const allPairs = [];
+  
+  // If this is Last.FM Recos, always add the imported tracks as candidates first
+  if (isLastfmRecos) {
+    out('Adding imported Last.FM tracks as search candidates...');
+    tracks.forEach(t => {
+      allPairs.push({ artist: t.artist, track: t.title });
+    });
+    out(`Added ${allPairs.length} tracks to search for in Plex`);
+    out('');
+  }
+  
   if (useOpenAI) {
     out('--- OpenAI Lookup ---');
     for (const t of tracks) {
