@@ -79,6 +79,13 @@
     .section-type { font-size: 11px; color: #666; text-transform: uppercase; font-weight: 600; }
     .section-title { font-weight: 500; margin-top: 4px; }
     .section-id { font-size: 12px; color: #999; margin-top: 2px; }
+    
+    .artist-details-link { text-decoration: underline; cursor: pointer; color: #6c757d; }
+    .artist-details-link:hover { color: #495057; }
+    .artist-details { display: none; margin-top: 8px; padding: 8px; background: #f8f9fa; border-radius: 4px; font-size: 12px; }
+    .artist-details.show { display: block; }
+    .artist-detail-item { margin: 4px 0; }
+    .artist-detail-source { font-weight: 600; color: #007bff; }
   </style>
 </head>
 <body>
@@ -248,6 +255,14 @@
       </div>
     </div>
 
+    <div class="card mb-3" id="artistsToCheckOutContainer" style="display:none;">
+      <div class="card-body">
+        <h6 class="card-title">Artists to Check Out</h6>
+        <p class="text-muted small mb-2">Recommended artists that you don't have any songs from in your collection, at all.</p>
+        <ol id="artistsToCheckOutList" style="margin: 0; padding-left: 20px;"></ol>
+      </div>
+    </div>
+
     <div class="text-center mt-10px" id="downloadBtnContainer" style="display:none;">
       <button type="button" id="downloadBtn" class="btn btn-primary">Download CreatePlaylist.py</button>
     </div>
@@ -275,6 +290,14 @@ const sectionFinderModal = new SimpleModal($('sectionFinderModal'));
 
 // Store existing playlist names for duplicate checking
 let existingPlaylistNames = new Set();
+
+// Toggle artist details visibility
+function toggleArtistDetails(detailsId) {
+  const detailsDiv = document.getElementById(detailsId);
+  if (detailsDiv) {
+    detailsDiv.classList.toggle('show');
+  }
+}
 
 // Store selected section for the section finder
 let selectedSectionId = null;
@@ -719,6 +742,8 @@ async function viewPlaylist(id, title) {
   $('playlistTitle').textContent = title;
   $('tracksList').innerHTML = '';
   $('outputLog').textContent = '';
+  $('downloadBtnContainer').style.display = 'none';
+  $('artistsToCheckOutContainer').style.display = 'none';
   $('notPlayedDays').value = cfg.NOT_PLAYED_IN_LAST_X_DAYS;
   $('perTrack').value = cfg.NUMBER_OF_SIMILAR_TRACKS;
   
@@ -961,20 +986,57 @@ $('generateForm').addEventListener('submit', async (e) => {
 
   // Fetch playlist tracks (or use Last.FM recommendations)
   let tracks;
+  let allTracksForCounting; // Keep original tracks for artist counting (before random selection)
+  
   if (isLastfmRecos) {
     // Use Last.FM recommendations from dataset
     tracks = JSON.parse(e.target.dataset.lastfmTracks || '[]');
+    allTracksForCounting = tracks; // Store original before any filtering
     out('Using Last.FM Recommendations');
   } else {
     // Fetch from Plex playlist
     const playlistUrl = cfg.PLEX_SERVER_URL.replace(/\/$/, '') + `/playlists/${encodeURIComponent(id)}/items?X-Plex-Token=${encodeURIComponent(cfg.PLEX_API_TOKEN)}`;
     const res = await fetchUrl(playlistUrl);
-    if (!res.ok) { out('ERROR: Failed to fetch playlist — ' + res.error); return; }
+    if (!res.ok) { 
+      console.log('Fetch error:', res.error);
+      setStatus('Error: ' + res.error); 
+      return; 
+    }
+    console.log('Playlist fetched successfully');
     const doc = xmlToDoc(res.body);
-    tracks = Array.from(doc.querySelectorAll('Track')).map(t => ({ artist: t.getAttribute('grandparentTitle'), title: t.getAttribute('title'), ratingKey: t.getAttribute('ratingKey') }));
+    tracks = Array.from(doc.querySelectorAll('Track')).map(t => ({
+      artist: t.getAttribute('grandparentTitle') || '',
+      title: t.getAttribute('title') || '',
+      ratingKey: t.getAttribute('ratingKey')
+    }));
+    allTracksForCounting = tracks; // Store original before any filtering
+    console.log('Found ' + tracks.length + ' tracks in playlist');
   }
   
+  // Track artist recommendation counts for "Artists to Check Out"
+  // Count from ALL tracks (before random selection) to get accurate artist counts
+  // Also track the details of where each recommendation came from
+  const artistCounts = {};
+  const artistDetails = {}; // Store track titles and sources for each artist
+  
+  allTracksForCounting.forEach(t => {
+    const artist = t.artist.trim();
+    if (artist) {
+      artistCounts[artist] = (artistCounts[artist] || 0) + 1;
+      
+      // Track the details
+      if (!artistDetails[artist]) {
+        artistDetails[artist] = [];
+      }
+      artistDetails[artist].push({
+        track: t.title,
+        source: isLastfmRecos ? 'Last.FM Recommendations' : 'Playlist'
+      });
+    }
+  });
+  
   // If random tracks is enabled and percent is set, randomly select a percentage of tracks
+  // This is only for API calls, NOT for artist counting
   if (useRandomTracks && randomTracksPercent) {
     const numToSelect = Math.max(1, Math.ceil(tracks.length * (randomTracksPercent / 100)));
     const shuffled = [...tracks].sort(() => Math.random() - 0.5);
@@ -1015,8 +1077,8 @@ $('generateForm').addEventListener('submit', async (e) => {
         }
         const r = await fetch(openaiUrl, {
           method: 'POST',
-          headers,
-          body: JSON.stringify({ model: cfg.CHATGPT_MODEL, messages: [{role:'user', content: prompt}], max_tokens:400 })
+          headers: headers,
+          body: JSON.stringify({ model: cfg.CHATGPT_MODEL, messages: [{ role: 'user', content: prompt }] })
         });
         if (!r.ok) throw new Error(r.status + ' ' + r.statusText);
         const j = await r.json();
@@ -1031,14 +1093,30 @@ $('generateForm').addEventListener('submit', async (e) => {
         if (!line) return;
         const parts = line.split(/\s*-\s*/);
         if (parts.length >= 2) {
-          allPairs.push({ artist: parts[0].trim(), track: parts.slice(1).join(' - ').trim() });
+          const artist = parts[0].trim();
+          const track = parts.slice(1).join(' - ').trim();
+          allPairs.push({ artist, track });
+          // Track artist counts from OpenAI recommendations
+          if (artist) {
+            artistCounts[artist] = (artistCounts[artist] || 0) + 1;
+            
+            // Track the details
+            if (!artistDetails[artist]) {
+              artistDetails[artist] = [];
+            }
+            artistDetails[artist].push({
+              track: track,
+              source: 'OpenAI'
+            });
+          }
         }
       });
       out('');
     }
+    out('');
   }
 
-  // Call Last.FM for each track (if enabled and API key is provided)
+  // Call Last.FM for each track (if enabled)
   if (useLastFM && cfg.LASTFM_API_KEY && cfg.LASTFM_API_KEY.trim()) {
     out('--- Last.FM Lookup ---');
     for (const t of tracks) {
@@ -1053,8 +1131,23 @@ $('generateForm').addEventListener('submit', async (e) => {
             const artist = track.artist.name || '';
             const trackName = track.name || '';
             if (artist && trackName) {
-              allPairs.push({ artist: artist.trim(), track: trackName.trim() });
+              const artistTrimmed = artist.trim();
+              const trackTrimmed = trackName.trim();
+              allPairs.push({ artist: artistTrimmed, track: trackTrimmed });
               out(`  - ${artist} - ${trackName}`);
+              // Track artist counts from Last.FM API recommendations
+              if (artistTrimmed) {
+                artistCounts[artistTrimmed] = (artistCounts[artistTrimmed] || 0) + 1;
+                
+                // Track the details
+                if (!artistDetails[artistTrimmed]) {
+                  artistDetails[artistTrimmed] = [];
+                }
+                artistDetails[artistTrimmed].push({
+                  track: trackTrimmed,
+                  source: 'Last.FM API'
+                });
+              }
             }
           });
         } else {
@@ -1225,6 +1318,97 @@ if __name__ == '__main__':
   
   // Show the download button after generation completes
   $('downloadBtnContainer').style.display = 'block';
+  
+  // Generate "Artists to Check Out" section
+  out('');
+  out('--- Analyzing Artists to Check Out ---');
+  out('Fetching all artists from your Plex library...');
+  
+  // Fetch ALL artists from Plex library in one API call for efficient comparison
+  let allPlexArtists = new Set();
+  try {
+    const allArtistsUrl = `${cfg.PLEX_SERVER_URL.replace(/\/$/, '')}/library/sections/${encodeURIComponent(cfg.MUSIC_SECTION)}/all?type=8&X-Plex-Token=${encodeURIComponent(cfg.PLEX_API_TOKEN)}`;
+    const r = await fetchUrl(allArtistsUrl);
+    if (r.ok) {
+      const d = xmlToDoc(r.body);
+      const artists = Array.from(d.querySelectorAll('Directory'));
+      artists.forEach(artist => {
+        const artistName = artist.getAttribute('title');
+        if (artistName) {
+          // Normalize artist name for comparison (lowercase, trimmed)
+          allPlexArtists.add(artistName.toLowerCase().trim());
+        }
+      });
+      out(`Found ${allPlexArtists.size} artists in your Plex library`);
+    } else {
+      out(`Warning: Could not fetch artist list (${r.error})`);
+    }
+  } catch (err) {
+    out(`Warning: Error fetching artist list (${err.message})`);
+  }
+  
+  out('');
+  
+  // Sort artists by recommendation count (descending)
+  const sortedArtists = Object.entries(artistCounts)
+    .sort((a, b) => b[1] - a[1]);
+  
+  const artistsToCheckOut = [];
+  
+  for (const [artist, count] of sortedArtists) {
+    if (artistsToCheckOut.length >= 10) break;
+    
+    const artistLower = artist.toLowerCase().trim();
+    
+    if (!allPlexArtists.has(artistLower)) {
+      // Artist not in collection
+      artistsToCheckOut.push({ artist, count });
+      out(`✓ ${artist} - Not in collection (recommended ${count} time${count > 1 ? 's' : ''})`);
+    } else {
+      out(`  ${artist} - Already in collection`);
+    }
+  }
+  
+  out('');
+  if (artistsToCheckOut.length > 0) {
+    out(`Found ${artistsToCheckOut.length} new artist${artistsToCheckOut.length > 1 ? 's' : ''} to check out!`);
+    
+    // Display in the UI
+    const container = $('artistsToCheckOutContainer');
+    const list = $('artistsToCheckOutList');
+    list.innerHTML = '';
+    
+    artistsToCheckOut.forEach(({ artist, count }, index) => {
+      const li = document.createElement('li');
+      const detailsId = `artist-details-${index}`;
+      
+      li.innerHTML = `
+        <strong>${artist}</strong> 
+        <span class="text-muted small">
+          (<span class="artist-details-link" onclick="toggleArtistDetails('${detailsId}')">recommended ${count} time${count > 1 ? 's' : ''}</span>)
+        </span>
+        <div id="${detailsId}" class="artist-details"></div>
+      `;
+      
+      list.appendChild(li);
+      
+      // Populate the details
+      const detailsDiv = document.getElementById(detailsId);
+      if (artistDetails[artist]) {
+        artistDetails[artist].forEach(detail => {
+          const detailItem = document.createElement('div');
+          detailItem.className = 'artist-detail-item';
+          detailItem.innerHTML = `<span class="artist-detail-source">${detail.source}:</span> ${detail.track}`;
+          detailsDiv.appendChild(detailItem);
+        });
+      }
+    });
+    
+    container.style.display = 'block';
+  } else {
+    out('No new artists to recommend (you have all recommended artists in your collection)');
+    $('artistsToCheckOutContainer').style.display = 'none';
+  }
 });
 
 // Init

@@ -8,6 +8,7 @@ Playlist Radio analyzes tracks in your existing Plex playlists and uses AI to re
 
 ## Features
 
+- **Artist Discovery**: Automatically identifies the most recommended artists not in your collection with detailed breakdown
 - **Last.FM Recommendations Integration**: Automatically fetch your personalized Last.FM recommendations (up to 100 tracks across 5 pages)
 - **Dual API Support**: Use OpenAI, Last.FM, or both simultaneously for recommendations
 - **Smart Track Selection**: Option to use a random percentage of tracks from large playlists
@@ -186,6 +187,59 @@ The generated `createplaylist.py` script:
 - Creates the new playlist with all discovered tracks
 - Provides detailed output showing progress and results
 
+## Artists to Check Out
+
+After generating a playlist, a new **"Artists to Check Out"** section appears below the output log, showing up to 10 most recommended artists that are **not in your Plex collection**.
+
+### How It Works
+
+1. **Tracks All Sources**: Counts artist recommendations from:
+   - Last.FM Recommendations (if using "Last FM Recos" playlist)
+   - OpenAI API responses
+   - Last.FM API responses
+
+2. **Single API Call**: Fetches all artists in your Plex library with one efficient query (no individual lookups)
+
+3. **Smart Filtering**: Compares recommended artists against your collection and shows only missing artists
+
+4. **Sorted by Popularity**: Artists are ranked by recommendation count (most recommended first)
+
+5. **Interactive Details**: Click on "recommended X times" to expand and see:
+   - Specific track titles that triggered each recommendation
+   - Which source(s) recommended each track (Last.FM Recommendations, OpenAI, or Last.FM API)
+
+### Example Output
+
+```
+Artists to Check Out
+Most recommended artists that you don't have in your collection
+
+1. Holy Ghost! (recommended 6 times)
+   ↓ Click to see:
+   • Last.FM Recommendations: Hold On
+   • Last.FM Recommendations: I Will Come Back
+   • OpenAI: Walk On Air
+   • Last.FM API: Okay
+
+2. LCD Soundsystem (recommended 4 times)
+   ↓ Click to see:
+   • Last.FM Recommendations: New York, I Love You...
+   • OpenAI: Someone Great
+```
+
+### Benefits
+
+- **Discovery Tool**: Find new artists frequently recommended but missing from your library
+- **Informed Decisions**: See exactly which tracks triggered each recommendation
+- **Source Transparency**: Know whether recommendations came from your Last.FM profile, AI analysis, or Last.FM's database
+- **Efficient**: Single API call scales well even checking 100+ artists
+
+### Use Cases
+
+- **Expand Your Collection**: Prioritize which new artists to add based on recommendation frequency
+- **Quality Check**: Review specific recommended tracks before purchasing/streaming
+- **Cross-Reference**: Compare recommendations across different playlists to find consistently suggested artists
+
 ## Output Log
 
 The output log shows:
@@ -194,6 +248,7 @@ The output log shows:
 - API responses (OpenAI recommendations, Last.FM results)
 - Plex search results for each candidate
 - Reasons for skipping tracks (duplicates, recently played, not found)
+- Artist checking progress (fetching library, comparing recommendations)
 - Final track list with rating keys
 - Instructions for running the Python script
 
