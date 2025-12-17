@@ -12,7 +12,7 @@
     h3 { font-size: 20px; font-weight: 600; margin: 0 0 20px 0; }
     h5 { font-size: 16px; font-weight: 600; margin: 0 0 10px 0; }
     h6 { font-size: 14px; font-weight: 600; margin: 0 0 8px 0; }
-    
+
     .d-flex { display: flex; }
     .justify-content-between { justify-content: space-between; }
     .align-items-center { align-items: center; }
@@ -24,7 +24,7 @@
     .text-muted { color: #6c757d; }
     .text-center { text-align: center; }
     .small { font-size: 12px; }
-    
+
     .btn { padding: 8px 16px; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 500; display: inline-block; text-decoration: none; }
     .btn:hover { opacity: 0.9; }
     .btn-primary { background: #007bff; color: white; border-color: #007bff; }
@@ -35,7 +35,7 @@
     .btn-sm { padding: 4px 12px; font-size: 12px; }
     .btn-close { background: none; border: none; font-size: 20px; cursor: pointer; color: #999; }
     .btn-close:hover { color: #000; }
-    
+
     .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); }
     .modal.show { display: flex; align-items: center; justify-content: center; }
     .modal.on-top { z-index: 1100; }
@@ -44,34 +44,34 @@
     .modal-header { padding: 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
     .modal-body { padding: 20px; max-height: 60vh; overflow-y: auto; }
     .modal-footer { padding: 20px; border-top: 1px solid #eee; text-align: right; }
-    
+
     .form-label { display: block; margin-bottom: 6px; font-weight: 500; }
     .form-control { width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
     .form-control:focus { outline: none; border-color: #007bff; box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25); }
     .form-check { display: flex; align-items: center; }
     .form-check-input { margin-right: 8px; cursor: pointer; }
     .form-check-label { cursor: pointer; }
-    
+
     .list-group { list-style: none; padding: 0; margin: 0; }
     .list-group-item { padding: 12px; border: 1px solid #ddd; border-bottom: 0; background: white; }
     .list-group-item:last-child { border-bottom: 1px solid #ddd; }
     .list-group-item:hover { background: #f9f9f9; }
-    
+
     .card { border: 1px solid #ddd; border-radius: 8px; background: white; overflow: hidden; }
     .card-body { padding: 20px; }
     .card-title { margin: 0 0 12px 0; font-weight: 600; }
-    
+
     pre { background: #f9f9f9; padding: 12px; border-radius: 4px; max-height: 300px; overflow: auto; font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace; font-size: 12px; border: 1px solid #eee; }
-    
+
     .row { display: flex; flex-wrap: wrap; margin: -12px; }
     .col-md-6 { flex: 0 0 50%; padding: 12px; }
     .col-md-3 { flex: 0 0 25%; padding: 12px; }
-    
+
     @media (max-width: 768px) {
       .col-md-6 { flex: 0 0 100%; }
       .col-md-3 { flex: 0 0 100%; }
     }
-    
+
     .help-link { font-size: 12px; margin-left: 8px; }
     .section-item { padding: 10px; margin: 8px 0; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; background: white; }
     .section-item:hover { background: #f0f0f0; }
@@ -79,7 +79,7 @@
     .section-type { font-size: 11px; color: #666; text-transform: uppercase; font-weight: 600; }
     .section-title { font-weight: 500; margin-top: 4px; }
     .section-id { font-size: 12px; color: #999; margin-top: 2px; }
-    
+
     .artist-details-link { text-decoration: underline; cursor: pointer; color: #6c757d; }
     .artist-details-link:hover { color: #495057; }
     .artist-details { display: none; margin-top: 8px; padding: 8px; background: #f8f9fa; border-radius: 4px; font-size: 12px; }
@@ -146,6 +146,10 @@
               <input id="NOT_PLAYED_IN_LAST_X_DAYS" class="form-control" type="number" value="30">
             </div>
             <div class="mb-2">
+              <label class="form-label">Sonic Similarity (0.1 to 1.0) <small class="text-muted">lower = more similar</small></label>
+              <input id="SONIC_SIMILARITY" class="form-control" type="number" placeholder="0.15" step="0.01" min="0.1" max="1.0">
+            </div>
+            <div class="mb-2">
               <label class="form-label">OpenAI API Key</label>
               <input id="OPENAI_KEY" class="form-control" placeholder="sk-...">
             </div>
@@ -160,6 +164,14 @@
             <div class="mb-2">
               <label class="form-label">Last.FM Username (only if you want your Last.FM Recommendations)</label>
               <input id="LASTFM_USERNAME" class="form-control" placeholder="Your Last.FM username">
+            </div>
+            <div class="mb-2">
+              <label class="form-label">Spotify Client ID (used for Reccobeats)</label>
+              <input id="SPOTIFY_CLIENT_ID" class="form-control" placeholder="Your Spotify Client ID">
+            </div>
+            <div class="mb-2">
+              <label class="form-label">Spotify Client Secret (used for Reccobeats)</label>
+              <input id="SPOTIFY_CLIENT_SECRET" class="form-control" placeholder="Your Spotify Client Secret">
             </div>
             <div class="text-muted small mb-2">Settings stored in browser localStorage. Do not share this browser instance with the keys present.</div>
             <button type="button" class="btn btn-primary" id="saveSettings">Save</button>
@@ -193,7 +205,7 @@
           <input id="perTrack" type="number" class="form-control" value="10">
         </div>
       </div>
-      
+
       <div class="row">
         <div class="col-md-6 mb-2">
           <label class="form-label">APIs (select at least one):</label>
@@ -205,10 +217,32 @@
             <input class="form-check-input" type="checkbox" id="useLastFM">
             <label class="form-check-label" for="useLastFM">Last.FM</label>
           </div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="useReccobeats">
+            <label class="form-check-label" for="useReccobeats">Reccobeats</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="useSonicallySimilar">
+            <label class="form-check-label" for="useSonicallySimilar">Sonically Similar</label>
+          </div>
         </div>
-        <div class="col-md-3 mb-2">
-          <label class="form-label">Not played in last X days</label>
-          <input id="notPlayedDays" type="number" class="form-control" value="30">
+        <div class="col-md-6 mb-2">
+          <div class="row">
+            <div class="col-md-6 mb-2">
+              <label class="form-label">Not played in last X days</label>
+              <input id="notPlayedDays" type="number" class="form-control" value="30">
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6 mb-2">
+              <label class="form-label">Sonic Similarity (0.1 to 1.0) <small class="text-muted">lower = more similar</small></label>
+              <div class="d-flex gap-2">
+                <input id="maxDistance" type="number" class="form-control" value="0.15" step="0.01" min="0.1" max="1.0">
+                <button class="btn btn-outline-secondary" type="button" onclick="const el = $('maxDistance'); el.value = Math.min(1.0, (parseFloat(el.value) + 0.01).toFixed(2));">+</button>
+                <button class="btn btn-outline-secondary" type="button" onclick="const el = $('maxDistance'); el.value = Math.max(0.1, (parseFloat(el.value) - 0.01).toFixed(2));">-</button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -232,7 +266,7 @@
 
       <div class="mb-3" style="padding: 12px; background: #e8f4f8; border-radius: 4px; border-left: 4px solid #0066cc;">
         <div id="callSummary" style="font-size: 13px; color: #333;">
-          <strong>API Calls:</strong> <span id="callCount">0 OpenAI + 0 Last.FM</span>
+          <strong><span id="totalCalls">0</span> API Calls:</strong> <span id="callCount">0 OpenAI + 0 Last.FM + 0 Reccobeats + 0 Sonically Similar</span>
         </div>
       </div>
 
@@ -325,7 +359,7 @@ async function loadConfigFromFile() {
       setStatus('');
       return null;
     }
-    
+
     console.log('Attempting to load config.txt...');
     setStatus('Loading config.txt...');
     const res = await fetch('config.txt');
@@ -360,11 +394,14 @@ function getConfig() {
       MUSIC_SECTION: localStorage.getItem('MUSIC_SECTION') || '',
       NUMBER_OF_SIMILAR_TRACKS: parseInt(localStorage.getItem('NUMBER_OF_SIMILAR_TRACKS') || '10'),
       NOT_PLAYED_IN_LAST_X_DAYS: parseInt(localStorage.getItem('NOT_PLAYED_IN_LAST_X_DAYS') || '30'),
+      SONIC_SIMILARITY: localStorage.getItem('SONIC_SIMILARITY') || '',
       SIMULATION_MODE: localStorage.getItem('SIMULATION_MODE') || 'Yes',
       OPENAI_KEY: localStorage.getItem('OPENAI_KEY') || '',
       CHATGPT_MODEL: localStorage.getItem('CHATGPT_MODEL') || 'gpt-3.5-turbo',
       LASTFM_API_KEY: localStorage.getItem('LASTFM_API_KEY') || '',
-      LASTFM_USERNAME: localStorage.getItem('LASTFM_USERNAME') || ''
+      LASTFM_USERNAME: localStorage.getItem('LASTFM_USERNAME') || '',
+      SPOTIFY_CLIENT_ID: localStorage.getItem('SPOTIFY_CLIENT_ID') || '',
+      SPOTIFY_CLIENT_SECRET: localStorage.getItem('SPOTIFY_CLIENT_SECRET') || ''
     };
   }
   return configData;
@@ -389,83 +426,90 @@ function xmlToDoc(xmlText) {
 function updateCallSummary(trackCount) {
   const useOpenAI = $('useOpenAI').checked;
   const useLastFM = $('useLastFM').checked;
+  const useReccobeats = $('useReccobeats').checked;
+  const useSonicallySimilar = $('useSonicallySimilar').checked;
   const perTrack = parseInt($('perTrack').value, 10) || 0;
   const useRandomTracks = $('useRandomTracks').checked;
   const randomTracksPercentValue = $('randomTracksPercent').value.trim();
   const randomTracksPercent = randomTracksPercentValue ? parseInt(randomTracksPercentValue, 10) : 100;
-  
+
   // Calculate effective track count based on random selection
   let effectiveTrackCount = trackCount;
   if (useRandomTracks && randomTracksPercentValue) {
     effectiveTrackCount = Math.max(1, Math.ceil(trackCount * (randomTracksPercent / 100)));
   }
-  
+
   // Note: The API call count is based on the number of playlist tracks (or random selection), not the per-track value
   // The per-track value just determines how many similar tracks are requested per playlist track
   const openaiCalls = useOpenAI ? effectiveTrackCount : 0;
   const lastfmCalls = useLastFM ? effectiveTrackCount : 0;
+  const reccobeatsCalls = useReccobeats ? effectiveTrackCount : 0;
+  const sonicallySimilarCalls = useSonicallySimilar ? effectiveTrackCount : 0;
   
-  $('callCount').textContent = `${openaiCalls} OpenAI + ${lastfmCalls} Last.FM`;
+  const totalCalls = openaiCalls + lastfmCalls + reccobeatsCalls + sonicallySimilarCalls;
+
+  $('totalCalls').textContent = totalCalls;
+  $('callCount').textContent = `${openaiCalls} OpenAI + ${lastfmCalls} Last.FM + ${reccobeatsCalls} Reccobeats + ${sonicallySimilarCalls} Sonically Similar`;
 }
 
 // Section Finder functionality
 $('findSectionLink').addEventListener('click', async (e) => {
   e.preventDefault();
-  
+
   const serverUrl = $('PLEX_SERVER_URL').value.trim();
   const token = $('PLEX_API_TOKEN').value.trim();
-  
+
   if (!serverUrl || !token) {
     alert('Please enter your Plex Server URL and API Token first.');
     return;
   }
-  
+
   selectedSectionId = null;
   $('sectionsList').innerHTML = '';
   $('sectionFinderStatus').textContent = 'Loading sections...';
   $('sectionFinderModal').classList.add('on-top');
   sectionFinderModal.show();
-  
+
   try {
     const url = serverUrl.replace(/\/$/, '') + '/library/sections?X-Plex-Token=' + encodeURIComponent(token);
     const res = await fetchUrl(url);
-    
+
     if (!res.ok) {
       $('sectionFinderStatus').textContent = 'Error: ' + res.error;
       return;
     }
-    
+
     const doc = xmlToDoc(res.body);
     const directories = Array.from(doc.querySelectorAll('Directory'));
-    
+
     if (!directories.length) {
       $('sectionFinderStatus').textContent = 'No library sections found.';
       return;
     }
-    
+
     $('sectionFinderStatus').textContent = 'Click to select your music library:';
-    
+
     directories.forEach(dir => {
       const id = dir.getAttribute('key');
       const title = dir.getAttribute('title');
       const type = dir.getAttribute('type');
-      
+
       const item = document.createElement('div');
       item.className = 'section-item';
       item.dataset.sectionId = id;
-      
+
       // Highlight music sections
       if (type === 'artist') {
         item.style.borderColor = '#28a745';
         item.style.borderWidth = '2px';
       }
-      
+
       item.innerHTML = `
         <div class="section-type">${type === 'artist' ? 'MUSIC' : type.toUpperCase()}</div>
         <div class="section-title">${title}</div>
         <div class="section-id">Section ID: ${id}</div>
       `;
-      
+
       item.addEventListener('click', () => {
         document.querySelectorAll('.section-item').forEach(el => el.classList.remove('selected'));
         item.classList.add('selected');
@@ -475,10 +519,10 @@ $('findSectionLink').addEventListener('click', async (e) => {
         $('sectionFinderModal').classList.remove('on-top');
         sectionFinderModal.hide();
       });
-      
+
       $('sectionsList').appendChild(item);
     });
-    
+
   } catch (err) {
     $('sectionFinderStatus').textContent = 'Error: ' + err.message;
   }
@@ -498,7 +542,7 @@ $('selectSection').addEventListener('click', () => {
 $('openSettings').addEventListener('click', () => { loadSettingsForm(); modal.show(); });
 $('saveSettings').addEventListener('click', () => {
   const cfg = {};
-  ['PLEX_SERVER_URL', 'PLEX_API_TOKEN', 'MUSIC_SECTION', 'NUMBER_OF_SIMILAR_TRACKS', 'NOT_PLAYED_IN_LAST_X_DAYS', 'OPENAI_KEY', 'CHATGPT_MODEL', 'LASTFM_API_KEY', 'LASTFM_USERNAME'].forEach(k => {
+  ['PLEX_SERVER_URL', 'PLEX_API_TOKEN', 'MUSIC_SECTION', 'NUMBER_OF_SIMILAR_TRACKS', 'NOT_PLAYED_IN_LAST_X_DAYS', 'SONIC_SIMILARITY', 'OPENAI_KEY', 'CHATGPT_MODEL', 'LASTFM_API_KEY', 'LASTFM_USERNAME', 'SPOTIFY_CLIENT_ID', 'SPOTIFY_CLIENT_SECRET'].forEach(k => {
     cfg[k] = $(k).value;
   });
   saveConfig(cfg);
@@ -523,6 +567,20 @@ $('useOpenAI').addEventListener('change', () => {
 $('useLastFM').addEventListener('change', () => {
   const trackCount = parseInt($('playlistDetailView').dataset.trackCount || '0');
   updateCallSummary(trackCount);
+});
+$('useReccobeats').addEventListener('change', () => {
+  const trackCount = parseInt($('playlistDetailView').dataset.trackCount || '0');
+  updateCallSummary(trackCount);
+});
+$('useSonicallySimilar').addEventListener('change', () => {
+  const trackCount = parseInt($('playlistDetailView').dataset.trackCount || '0');
+  updateCallSummary(trackCount);
+});
+
+// Save maxDistance to localStorage when changed
+$('maxDistance').addEventListener('change', () => {
+  localStorage.setItem('SONIC_SIMILARITY', $('maxDistance').value);
+  configData = null; // Reset cache
 });
 
 // Update call summary when per-track value changes
@@ -556,16 +614,16 @@ $('downloadBtn').addEventListener('click', () => {
   const cfg = getConfig();
   const ratingKeys = [];
   const logText = $('outputLog').textContent;
-  
+
   // Extract rating keys from the output log (look for "TRACK_RATING_KEYS = [...]")
   const match = logText.match(/TRACK_RATING_KEYS = \[(.*?)\]/);
   if (match) {
     const keysStr = match[1];
     ratingKeys.push(...keysStr.split(',').map(k => parseInt(k.trim())).filter(k => !isNaN(k)));
   }
-  
+
   const newTitle = $('newTitle').value.trim() || 'New Playlist';
-  
+
   const pythonScript = `import re
 from urllib.parse import unquote
 from plexapi.server import PlexServer
@@ -573,10 +631,10 @@ from plexapi.playlist import Playlist
 
 # --- Configuration: UPDATE THESE VALUES ---
 # 1. Your Plex Server URL (e.g., 'http://192.168.1.10:32400')
-BASEURL = '${cfg.PLEX_SERVER_URL}' 
+BASEURL = '${cfg.PLEX_SERVER_URL}'
 
 # 2. Your Plex Token (The 'X-Plex-Token' value)
-PLEX_TOKEN = '${cfg.PLEX_API_TOKEN}' 
+PLEX_TOKEN = '${cfg.PLEX_API_TOKEN}'
 
 # 3. Define the desired playlist title
 PLAYLIST_TITLE = '${newTitle}'
@@ -594,7 +652,7 @@ def create_plex_playlist_from_keys(baseurl, token, title, rating_keys):
         # 1. Connect to Plex Server
         print("Connecting to Plex server...")
         plex = PlexServer(baseurl, token)
-        
+
         # 2. Construct the Track Keys used by fetchItem()
         # The key required by plex.fetchItem is in the format: /library/metadata/{id}
         track_keys = [f"/library/metadata/{key}" for key in rating_keys]
@@ -602,7 +660,7 @@ def create_plex_playlist_from_keys(baseurl, token, title, rating_keys):
         # 3. Fetch the actual Plex media objects (tracks)
         playlist_items = []
         print("Fetching track metadata from Plex...")
-        
+
         for track_key in track_keys:
             try:
                 # Retrieve the actual track object using its key
@@ -618,23 +676,23 @@ def create_plex_playlist_from_keys(baseurl, token, title, rating_keys):
 
         # 4. Create the Playlist
         print(f"Creating playlist: **{title}** with {len(playlist_items)} tracks...")
-        
+
         # Use the create method, passing the list of track objects
         new_playlist = Playlist.create(
-            server=plex, 
-            title=title, 
-            items=playlist_items, 
+            server=plex,
+            title=title,
+            items=playlist_items,
             smart=False
         )
 
         print("\\n---")
-        print(f"✓ Playlist created successfully!")
+        print(f"? Playlist created successfully!")
         print(f"Title: **{new_playlist.title}**")
         print(f"Total Tracks: **{new_playlist.leafCount}**")
         print(f"Plex Key: {new_playlist.key}")
 
     except Exception as e:
-        print(f"\\n✗ An error occurred: {e}")
+        print(f"\\n? An error occurred: {e}")
         print("Please check your BASEURL and PLEX_TOKEN.")
 
 if __name__ == '__main__':
@@ -667,29 +725,29 @@ async function fetchUrl(url) {
 async function listPlaylists() {
   const cfg = getConfig();
   console.log('listPlaylists called with config:', cfg);
-  if (!cfg.PLEX_SERVER_URL || !cfg.PLEX_API_TOKEN) { 
+  if (!cfg.PLEX_SERVER_URL || !cfg.PLEX_API_TOKEN) {
     const msg = 'Click "Settings" button to configure your Plex server and OpenAI API key';
-    setStatus('⚠️ ' + msg); 
+    setStatus('?? ' + msg);
     console.log('Missing PLEX_SERVER_URL or PLEX_API_TOKEN');
-    return; 
+    return;
   }
   setStatus('Fetching playlists from ' + cfg.PLEX_SERVER_URL + '...');
   const url = cfg.PLEX_SERVER_URL.replace(/\/$/, '') + '/playlists?X-Plex-Token=' + encodeURIComponent(cfg.PLEX_API_TOKEN);
   console.log('Fetching URL:', url);
   const res = await fetchUrl(url);
-  if (!res.ok) { 
-    setStatus('Error fetching playlists: ' + res.error); 
+  if (!res.ok) {
+    setStatus('Error fetching playlists: ' + res.error);
     console.log('Fetch error:', res.error);
-    return; 
+    return;
   }
   console.log('Playlists fetched successfully');
   const doc = xmlToDoc(res.body);
   const pls = Array.from(doc.querySelectorAll('Playlist'));
   console.log('Found ' + pls.length + ' playlists');
-  
+
   // Store existing playlist names for duplicate checking
   existingPlaylistNames = new Set(pls.map(p => (p.getAttribute('title') || '').trim().toLowerCase()));
-  
+
   // Convert playlists to array format for consistent handling
   const plsArray = pls.map(p => ({
     title: p.getAttribute('title') || 'Untitled',
@@ -697,10 +755,10 @@ async function listPlaylists() {
     summary: p.getAttribute('summary') || '',
     isVirtual: false
   }));
-  
+
   // Sort all playlists alphabetically (case-insensitive)
   plsArray.sort((a, b) => a.title.toLowerCase().localeCompare(b.title.toLowerCase()));
-  
+
   // If Last.FM username is configured, inject virtual "Last FM Recos" playlist
   const lastfmUsername = cfg.LASTFM_USERNAME?.trim();
   if (lastfmUsername) {
@@ -710,19 +768,19 @@ async function listPlaylists() {
       summary: 'Your Last.FM recommended tracks',
       isVirtual: true
     };
-    
+
     // Find insertion point (alphabetically)
     let insertIndex = plsArray.findIndex(p => p.title.toLowerCase() > 'last fm recos'.toLowerCase());
     if (insertIndex === -1) insertIndex = plsArray.length;
-    
+
     plsArray.splice(insertIndex, 0, virtualPlaylist);
     console.log('Inserted Last FM Recos at index', insertIndex, 'of', plsArray.length);
   }
-  
+
   const container = $('playlists');
   container.innerHTML = '';
   if (!plsArray.length) { container.innerHTML = '<div class="text-muted">No playlists found.</div>'; setStatus(''); return; }
-  
+
   plsArray.forEach(p => {
     const item = document.createElement('div');
     item.className = 'list-group-item d-flex justify-content-between align-items-center';
@@ -746,66 +804,72 @@ async function viewPlaylist(id, title) {
   $('artistsToCheckOutContainer').style.display = 'none';
   $('notPlayedDays').value = cfg.NOT_PLAYED_IN_LAST_X_DAYS;
   $('perTrack').value = cfg.NUMBER_OF_SIMILAR_TRACKS;
-  
+  // Only set maxDistance if it's empty (first load)
+  if (!$('maxDistance').value) {
+    $('maxDistance').value = cfg.SONIC_SIMILARITY || '';
+  }
+
   // Check if this is the Last FM Recos virtual playlist
   if (id === '__lastfm_recos__') {
     // Special handling for Last FM Recos
     $('newTitle').value = 'Last FM Recos'; // No "Radio" suffix
-    
+
     // Set checkboxes based on whether API keys are configured
     $('useOpenAI').checked = !!(cfg.OPENAI_KEY && cfg.OPENAI_KEY.trim());
     $('useLastFM').checked = !!(cfg.LASTFM_API_KEY && cfg.LASTFM_API_KEY.trim());
-    
+    $('useReccobeats').checked = false; // Reccobeats not selected by default
+    $('useSonicallySimilar').checked = !!(cfg.SONIC_SIMILARITY && cfg.SONIC_SIMILARITY !== ''); // Auto-check if value set
+
     $('openaiPrompt').value = `I like the following song: {TRACK} by {ARTIST}\nName {N} tracks by different artists that I would also like. Provide each as 'Artist - Track Title' on its own line.`;
-    
+
     setStatus('');
-    
+
     // Fetch Last.FM recommendations
     const lastfmUsername = cfg.LASTFM_USERNAME?.trim();
-    
+
     if (!lastfmUsername) {
       setStatus('Error: Last.FM username not configured');
       return;
     }
-    
+
     // Automatically fetch recommendations using CORS proxy
     $('tracksListTitle').textContent = 'Last.FM Recommendations';
     $('tracksList').innerHTML = '<li style="color: #6c757d;">Loading recommendations from Last.FM...</li>';
-    
+
     // Function to fetch recommendations with delay
     async function fetchLastfmRecommendations() {
       const allTracks = [];
       const seenTracks = new Set();
       const lastfmUrl = `https://www.last.fm/player/station/user/${encodeURIComponent(lastfmUsername)}/recommended`;
       const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(lastfmUrl)}`;
-      
+
       try {
         // Fetch 5 pages with 3 second delays
         for (let i = 1; i <= 5; i++) {
           $('tracksList').innerHTML = `<li style="color: #6c757d;">Fetching page ${i} of 5...</li>`;
-          
+
           // Build URL with page parameter (page 1 has no parameter)
           const pageParam = i === 1 ? '' : `?page=${i}`;
           const pageUrl = `${lastfmUrl}${pageParam}`;
           const pageProxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(pageUrl)}`;
-          
+
           const res = await fetch(pageProxyUrl);
           if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-          
+
           const data = await res.json();
-          
+
           if (!data.playlist || !Array.isArray(data.playlist)) {
             throw new Error('Invalid JSON format - missing "playlist" array');
           }
-          
+
           // Process tracks from this batch
           data.playlist.forEach(track => {
             const artist = track.artists && track.artists[0] ? (track.artists[0].name || track.artists[0]._name || 'Unknown Artist') : 'Unknown Artist';
             const title = track.name || track._name || 'Unknown Track';
-            
+
             // Create a canonical key for deduplication (lowercase, normalized)
             const canonKey = `${artist.toLowerCase().trim()}|${title.toLowerCase().trim()}`;
-            
+
             if (!seenTracks.has(canonKey)) {
               seenTracks.add(canonKey);
               allTracks.push({
@@ -815,23 +879,23 @@ async function viewPlaylist(id, title) {
               });
             }
           });
-          
+
           console.log(`Page ${i}: Got ${data.playlist.length} tracks, total unique: ${allTracks.length}`);
-          
+
           // Wait 3 seconds before next fetch (except after the last one)
           if (i < 5) {
             $('tracksList').innerHTML = `<li style="color: #6c757d;">Fetched page ${i} of 5. Waiting 3 seconds...</li>`;
             await new Promise(resolve => setTimeout(resolve, 3000));
           }
         }
-        
+
         if (!allTracks.length) {
-          $('tracksList').innerHTML = '<li style="color: #dc3545;">⚠️ No tracks found in recommendations</li>';
+          $('tracksList').innerHTML = '<li style="color: #dc3545;">?? No tracks found in recommendations</li>';
           return;
         }
-        
+
         console.log('Total unique tracks loaded:', allTracks.length);
-        
+
         // Display loaded tracks
         $('tracksList').innerHTML = '';
         allTracks.forEach(t => {
@@ -839,10 +903,10 @@ async function viewPlaylist(id, title) {
           li.textContent = `${t.artist} - ${t.title}`;
           $('tracksList').appendChild(li);
         });
-        
+
         // Store track count in DOM for checkbox listeners
         $('playlistDetailView').dataset.trackCount = allTracks.length;
-        
+
         // Set up random tracks selection based on track count
         const trackCount = allTracks.length;
         const similarTracksPerTrack = parseInt($('perTrack').value, 10) || cfg.NUMBER_OF_SIMILAR_TRACKS;
@@ -852,59 +916,61 @@ async function viewPlaylist(id, title) {
         } else {
           $('randomTracksPercent').value = Math.min(Math.ceil((similarTracksPerTrack / trackCount) * 100), 100);
         }
-        
+
         // Update call summary after tracks are loaded
         updateCallSummary(trackCount);
-        
+
         // Store tracks in dataset for generation
         $('generateForm').dataset.playlistId = id;
         $('generateForm').dataset.isLastfmRecos = 'true';
         $('generateForm').dataset.lastfmTracks = JSON.stringify(allTracks);
-        
-        setStatus(`✓ Loaded ${allTracks.length} unique tracks from Last.FM`);
-        
+
+        setStatus(`? Loaded ${allTracks.length} unique tracks from Last.FM`);
+
       } catch (err) {
         console.log('Last.FM fetch error:', err);
-        $('tracksList').innerHTML = `<li style="color: #dc3545;">❌ Error loading recommendations: ${err.message}</li>`;
+        $('tracksList').innerHTML = `<li style="color: #dc3545;">? Error loading recommendations: ${err.message}</li>`;
         setStatus('Error loading Last.FM recommendations');
       }
     }
-    
+
     // Start fetching
     fetchLastfmRecommendations();
-    
+
     return;
   }
-  
+
   // Regular Plex playlist handling
   $('newTitle').value = title + ' Radio';
-  
+
   // Set checkboxes based on whether API keys are configured
   $('useOpenAI').checked = !!(cfg.OPENAI_KEY && cfg.OPENAI_KEY.trim());
   $('useLastFM').checked = !!(cfg.LASTFM_API_KEY && cfg.LASTFM_API_KEY.trim());
-  
+  $('useReccobeats').checked = false; // Reccobeats not selected by default
+  $('useSonicallySimilar').checked = !!(cfg.SONIC_SIMILARITY && cfg.SONIC_SIMILARITY !== ''); // Auto-check if value set
+
   $('openaiPrompt').value = `I like the following song: {TRACK} by {ARTIST}\nName {N} tracks by different artists that I would also like. Provide each as 'Artist - Track Title' on its own line.`;
-  
+
   setStatus('Fetching playlist tracks...');
   const url = cfg.PLEX_SERVER_URL.replace(/\/$/, '') + `/playlists/${encodeURIComponent(id)}/items?X-Plex-Token=${encodeURIComponent(cfg.PLEX_API_TOKEN)}`;
   console.log('Fetching playlist URL:', url);
   const res = await fetchUrl(url);
-  if (!res.ok) { 
+  if (!res.ok) {
     console.log('Fetch error:', res.error);
-    setStatus('Error: ' + res.error); 
-    return; 
+    setStatus('Error: ' + res.error);
+    return;
   }
   console.log('Playlist fetched successfully');
   const doc = xmlToDoc(res.body);
   const tracks = Array.from(doc.querySelectorAll('Track'));
   console.log('Found ' + tracks.length + ' tracks in playlist');
-  
+
   // Store track count in DOM for checkbox listeners
   $('playlistDetailView').dataset.trackCount = tracks.length;
-  
+
   // Update the heading to "Current Playlist" for regular playlists
   $('tracksListTitle').textContent = 'Current Playlist';
-  
+
   tracks.forEach(t => {
     const artist = t.getAttribute('grandparentTitle') || '';
     const track = t.getAttribute('title') || '';
@@ -912,7 +978,7 @@ async function viewPlaylist(id, title) {
     li.textContent = `${artist} - ${track}`;
     $('tracksList').appendChild(li);
   });
-  
+
   // Set up random tracks selection based on track count
   const trackCount = tracks.length;
   const similarTracksPerTrack = parseInt($('perTrack').value, 10) || cfg.NUMBER_OF_SIMILAR_TRACKS;
@@ -924,10 +990,10 @@ async function viewPlaylist(id, title) {
   } else {
     $('randomTracksPercent').value = Math.min(Math.ceil((similarTracksPerTrack / trackCount) * 100), 100);
   }
-  
+
   // Update call summary after tracks are loaded
   updateCallSummary(trackCount);
-  
+
   console.log('Playlist view complete');
   setStatus('');
   $('generateForm').dataset.playlistId = id;
@@ -941,7 +1007,7 @@ $('generateForm').addEventListener('submit', async (e) => {
   const id = e.target.dataset.playlistId;
   const isLastfmRecos = e.target.dataset.isLastfmRecos === 'true';
   const newTitle = $('newTitle').value.trim() || (isLastfmRecos ? 'Last FM Recos' : ('Playlist ' + id + ' Radio'));
-  
+
   // Check if playlist name already exists
   if (existingPlaylistNames.has(newTitle.toLowerCase())) {
     const confirmed = confirm('You already have a playlist with this name, are you sure you want to overwrite it?');
@@ -949,16 +1015,18 @@ $('generateForm').addEventListener('submit', async (e) => {
       return; // User clicked No, cancel the generation
     }
   }
-  
+
   const perTrack = parseInt($('perTrack').value, 10) || cfg.NUMBER_OF_SIMILAR_TRACKS;
   const useOpenAI = $('useOpenAI').checked;
   const useLastFM = $('useLastFM').checked;
+  const useReccobeats = $('useReccobeats').checked;
+  const useSonicallySimilar = $('useSonicallySimilar').checked;
   const notPlayedDays = parseInt($('notPlayedDays').value, 10) || cfg.NOT_PLAYED_IN_LAST_X_DAYS;
   const openaiPromptTemplate = $('openaiPrompt').value.trim();
   const useRandomTracks = $('useRandomTracks').checked;
   const randomTracksPercentValue = $('randomTracksPercent').value.trim();
   const randomTracksPercent = randomTracksPercentValue ? parseInt(randomTracksPercentValue, 10) : null;
-  
+
   const output = [];
   function out(s) { output.push(s); $('outputLog').textContent = output.join('\n'); }
 
@@ -966,17 +1034,17 @@ $('generateForm').addEventListener('submit', async (e) => {
   $('outputLog').scrollIntoView({ behavior: 'smooth', block: 'start' });
 
   // Validate at least one source is selected (except for Last.FM Recos where we use imported tracks)
-  if (!useOpenAI && !useLastFM && !isLastfmRecos) {
-    out('❌ ERROR: Please select at least one track source (OpenAI or Last.FM)');
+  if (!useOpenAI && !useLastFM && !useReccobeats && !useSonicallySimilar && !isLastfmRecos) {
+    out('❌ ERROR: Please select at least one track source (OpenAI, Last.FM, Reccobeats, or Sonically Similar)');
     return;
   }
 
   out(`=== Generating: ${newTitle} ===`);
   out(`Similar tracks per track: ${perTrack}`);
-  if (isLastfmRecos && !useOpenAI && !useLastFM) {
+  if (isLastfmRecos && !useOpenAI && !useLastFM && !useReccobeats && !useSonicallySimilar) {
     out(`Using imported Last.FM tracks directly (no additional API lookups)`);
   } else {
-    out(`Track sources: ${[useOpenAI && 'OpenAI', useLastFM && 'Last.FM'].filter(Boolean).join(', ')}`);
+    out(`Track sources: ${[useOpenAI && 'OpenAI', useLastFM && 'Last.FM', useReccobeats && 'Reccobeats', useSonicallySimilar && 'Sonically Similar'].filter(Boolean).join(', ')}`);
   }
   out(`Not played in last: ${notPlayedDays} days`);
   if (useRandomTracks && randomTracksPercent) {
@@ -987,7 +1055,7 @@ $('generateForm').addEventListener('submit', async (e) => {
   // Fetch playlist tracks (or use Last.FM recommendations)
   let tracks;
   let allTracksForCounting; // Keep original tracks for artist counting (before random selection)
-  
+
   if (isLastfmRecos) {
     // Use Last.FM recommendations from dataset
     tracks = JSON.parse(e.target.dataset.lastfmTracks || '[]');
@@ -997,33 +1065,34 @@ $('generateForm').addEventListener('submit', async (e) => {
     // Fetch from Plex playlist
     const playlistUrl = cfg.PLEX_SERVER_URL.replace(/\/$/, '') + `/playlists/${encodeURIComponent(id)}/items?X-Plex-Token=${encodeURIComponent(cfg.PLEX_API_TOKEN)}`;
     const res = await fetchUrl(playlistUrl);
-    if (!res.ok) { 
+    if (!res.ok) {
       console.log('Fetch error:', res.error);
-      setStatus('Error: ' + res.error); 
-      return; 
+      setStatus('Error: ' + res.error);
+      return;
     }
     console.log('Playlist fetched successfully');
     const doc = xmlToDoc(res.body);
     tracks = Array.from(doc.querySelectorAll('Track')).map(t => ({
       artist: t.getAttribute('grandparentTitle') || '',
       title: t.getAttribute('title') || '',
-      ratingKey: t.getAttribute('ratingKey')
+      ratingKey: t.getAttribute('ratingKey'),
+      key: t.getAttribute('key')
     }));
     allTracksForCounting = tracks; // Store original before any filtering
     console.log('Found ' + tracks.length + ' tracks in playlist');
   }
-  
+
   // Track artist recommendation counts for "Artists to Check Out"
   // Count from ALL tracks (before random selection) to get accurate artist counts
   // Also track the details of where each recommendation came from
   const artistCounts = {};
   const artistDetails = {}; // Store track titles and sources for each artist
-  
+
   allTracksForCounting.forEach(t => {
     const artist = t.artist.trim();
     if (artist) {
       artistCounts[artist] = (artistCounts[artist] || 0) + 1;
-      
+
       // Track the details
       if (!artistDetails[artist]) {
         artistDetails[artist] = [];
@@ -1034,7 +1103,7 @@ $('generateForm').addEventListener('submit', async (e) => {
       });
     }
   });
-  
+
   // If random tracks is enabled and percent is set, randomly select a percentage of tracks
   // This is only for API calls, NOT for artist counting
   if (useRandomTracks && randomTracksPercent) {
@@ -1044,7 +1113,7 @@ $('generateForm').addEventListener('submit', async (e) => {
     out(`Selected ${tracks.length} random tracks (${randomTracksPercent}% of ${shuffled.length})`);
     out('');
   }
-  
+
   const existingKeys = new Set(tracks.map(t => t.ratingKey).filter(k => k)); // Filter out null keys from Last.FM
 
   out('Playlist has ' + tracks.length + ' tracks');
@@ -1052,7 +1121,8 @@ $('generateForm').addEventListener('submit', async (e) => {
 
   // Call OpenAI for each track (if enabled)
   const allPairs = [];
-  
+  const seenPairsForArtistTracking = new Set(); // Track what we've already counted for artists
+
   // If this is Last.FM Recos, always add the imported tracks as candidates first
   if (isLastfmRecos) {
     out('Adding imported Last.FM tracks as search candidates...');
@@ -1062,7 +1132,7 @@ $('generateForm').addEventListener('submit', async (e) => {
     out(`Added ${allPairs.length} tracks to search for in Plex`);
     out('');
   }
-  
+
   if (useOpenAI) {
     out('--- OpenAI Lookup ---');
     for (const t of tracks) {
@@ -1096,18 +1166,23 @@ $('generateForm').addEventListener('submit', async (e) => {
           const artist = parts[0].trim();
           const track = parts.slice(1).join(' - ').trim();
           allPairs.push({ artist, track });
-          // Track artist counts from OpenAI recommendations
+
+          // Track artist counts from OpenAI recommendations (only once per unique artist-track pair)
           if (artist) {
-            artistCounts[artist] = (artistCounts[artist] || 0) + 1;
-            
-            // Track the details
-            if (!artistDetails[artist]) {
-              artistDetails[artist] = [];
+            const canonKey = `${artist.toLowerCase().trim()}|${track.toLowerCase().trim()}`;
+            if (!seenPairsForArtistTracking.has(canonKey)) {
+              seenPairsForArtistTracking.add(canonKey);
+              artistCounts[artist] = (artistCounts[artist] || 0) + 1;
+
+              // Track the details
+              if (!artistDetails[artist]) {
+                artistDetails[artist] = [];
+              }
+              artistDetails[artist].push({
+                track: track,
+                source: 'OpenAI'
+              });
             }
-            artistDetails[artist].push({
-              track: track,
-              source: 'OpenAI'
-            });
           }
         }
       });
@@ -1135,18 +1210,23 @@ $('generateForm').addEventListener('submit', async (e) => {
               const trackTrimmed = trackName.trim();
               allPairs.push({ artist: artistTrimmed, track: trackTrimmed });
               out(`  - ${artist} - ${trackName}`);
-              // Track artist counts from Last.FM API recommendations
+
+              // Track artist counts from Last.FM API recommendations (only once per unique artist-track pair)
               if (artistTrimmed) {
-                artistCounts[artistTrimmed] = (artistCounts[artistTrimmed] || 0) + 1;
-                
-                // Track the details
-                if (!artistDetails[artistTrimmed]) {
-                  artistDetails[artistTrimmed] = [];
+                const canonKey = `${artistTrimmed.toLowerCase().trim()}|${trackTrimmed.toLowerCase().trim()}`;
+                if (!seenPairsForArtistTracking.has(canonKey)) {
+                  seenPairsForArtistTracking.add(canonKey);
+                  artistCounts[artistTrimmed] = (artistCounts[artistTrimmed] || 0) + 1;
+
+                  // Track the details
+                  if (!artistDetails[artistTrimmed]) {
+                    artistDetails[artistTrimmed] = [];
+                  }
+                  artistDetails[artistTrimmed].push({
+                    track: trackTrimmed,
+                    source: 'Last.FM API'
+                  });
                 }
-                artistDetails[artistTrimmed].push({
-                  track: trackTrimmed,
-                  source: 'Last.FM API'
-                });
               }
             }
           });
@@ -1159,7 +1239,266 @@ $('generateForm').addEventListener('submit', async (e) => {
     }
     out('');
   } else if (useLastFM && (!cfg.LASTFM_API_KEY || !cfg.LASTFM_API_KEY.trim())) {
-    out('⚠️ Last.FM selected but no API key configured in Settings');
+    out('?? Last.FM selected but no API key configured in Settings');
+    out('');
+  }
+
+  // Call Reccobeats for each track (if enabled)
+  if (useReccobeats) {
+    out('--- Reccobeats Lookup ---');
+    
+    // Check if Spotify credentials are configured
+    if (!cfg.SPOTIFY_CLIENT_ID || !cfg.SPOTIFY_CLIENT_ID.trim() || !cfg.SPOTIFY_CLIENT_SECRET || !cfg.SPOTIFY_CLIENT_SECRET.trim()) {
+      out('⚠️ Reccobeats selected but Spotify credentials not configured in Settings');
+      out('Reccobeats requires Spotify Client ID and Client Secret to look up track IDs');
+      out('');
+    } else {
+      // Step 1: Get Spotify access token
+      out('Requesting Spotify access token...');
+      let spotifyToken = null;
+      try {
+        const tokenRes = await fetch('https://accounts.spotify.com/api/token', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          body: `grant_type=client_credentials&client_id=${encodeURIComponent(cfg.SPOTIFY_CLIENT_ID)}&client_secret=${encodeURIComponent(cfg.SPOTIFY_CLIENT_SECRET)}`
+        });
+        
+        if (!tokenRes.ok) {
+          out(`✗ Failed to get Spotify token: ${tokenRes.status} ${tokenRes.statusText}`);
+          out('');
+        } else {
+          const tokenData = await tokenRes.json();
+          spotifyToken = tokenData.access_token;
+          out('* Got Spotify access token');
+          out('');
+        }
+      } catch (err) {
+        out(`Spotify token ERROR: ${err.message}`);
+        out('');
+      }
+      
+      // Step 2: Process each track if we have a token
+      if (spotifyToken) {
+        for (const t of tracks) {
+          out(`>>> Requesting similar from Reccobeats for: ${t.title} - ${t.artist}`);
+          try {
+            // Search Spotify for the track to get its ID
+            const searchQuery = `track:${t.title} artist:${t.artist}`;
+            const spotifySearchUrl = `https://api.spotify.com/v1/search?q=${encodeURIComponent(searchQuery)}&type=track&limit=1`;
+            out(`  Searching Spotify for track...`);
+            
+            const spotifyRes = await fetch(spotifySearchUrl, {
+              headers: {
+                'Authorization': `Bearer ${spotifyToken}`
+              }
+            });
+            
+            if (!spotifyRes.ok) {
+              out(`  Spotify search failed: ${spotifyRes.status} ${spotifyRes.statusText}`);
+              continue;
+            }
+            
+            const spotifyData = await spotifyRes.json();
+            if (!spotifyData.tracks || !spotifyData.tracks.items || spotifyData.tracks.items.length === 0) {
+              out(`  Track not found on Spotify`);
+              continue;
+            }
+            
+            const track = spotifyData.tracks.items[0];
+            const spotifyTrackId = track.id;
+            out(`  Found Spotify track: ${track.name} by ${track.artists[0].name}`);
+            out(`  Spotify ID: ${spotifyTrackId}`);
+            
+            // Get recommendations from Reccobeats using the Spotify track ID
+            const recoUrl = `https://api.reccobeats.com/v1/track/recommendation?seeds=${spotifyTrackId}&size=${perTrack}`;
+            out(`  Requesting ${perTrack} recommendations from Reccobeats...`);
+            const recoRes = await fetch(recoUrl);
+            
+            if (!recoRes.ok) {
+              // Try to get specific error message from response
+              try {
+                const errorData = await recoRes.json();
+                if (errorData.error) {
+                  out(`  Reccobeats error: ${errorData.error}`);
+                } else {
+                  out(`  Recommendations failed: ${recoRes.status} ${recoRes.statusText}`);
+                }
+              } catch (e) {
+                out(`  Recommendations failed: ${recoRes.status} ${recoRes.statusText}`);
+              }
+              continue;
+            }
+            
+            const recoData = await recoRes.json();
+            
+            // Reccobeats returns an object with 'content' array containing track objects
+            if (!recoData || !recoData.content || !Array.isArray(recoData.content) || recoData.content.length === 0) {
+              out(`  No recommendations found`);
+              continue;
+            }
+            
+            out(`  * Got ${recoData.content.length} recommendations`);
+            
+            recoData.content.forEach(track => {
+              // Extract artist name (first artist from artists array)
+              const artist = (track.artists && track.artists[0] && track.artists[0].name) ? track.artists[0].name : '';
+              // Extract track name (Reccobeats uses 'trackTitle' not 'name')
+              const trackName = track.trackTitle || '';
+              if (artist && trackName) {
+                const artistTrimmed = artist.trim();
+                const trackTrimmed = trackName.trim();
+                allPairs.push({ artist: artistTrimmed, track: trackTrimmed });
+                out(`  - ${artist} - ${trackName}`);
+                
+                // Track artist counts from Reccobeats recommendations (only once per unique artist-track pair)
+                if (artistTrimmed) {
+                  const canonKey = `${artistTrimmed.toLowerCase().trim()}|${trackTrimmed.toLowerCase().trim()}`;
+                  if (!seenPairsForArtistTracking.has(canonKey)) {
+                    seenPairsForArtistTracking.add(canonKey);
+                    artistCounts[artistTrimmed] = (artistCounts[artistTrimmed] || 0) + 1;
+                    
+                    // Track the details
+                    if (!artistDetails[artistTrimmed]) {
+                      artistDetails[artistTrimmed] = [];
+                    }
+                    artistDetails[artistTrimmed].push({
+                      track: trackTrimmed,
+                      source: 'Reccobeats'
+                    });
+                  }
+                }
+              }
+            });
+            
+          } catch (err) {
+            out(`Reccobeats ERROR: ${err.message}`);
+          }
+        }
+        out('');
+      }
+    }
+  }
+
+  // Call Sonically Similar (Plex internal) for each track (if enabled)
+  if (useSonicallySimilar) {
+    out('--- Sonically Similar Lookup ---');
+    for (const t of tracks) {
+      let trackId = null;
+      
+      // If no key, search Plex library for this track
+      if (!t.key) {
+        out(`>>> Searching Plex library for: ${t.title} - ${t.artist}`);
+        try {
+          const searchQuery = encodeURIComponent(`${t.artist} ${t.title}`);
+          const searchUrl = `${cfg.PLEX_SERVER_URL.replace(/\/$/, '')}/library/sections/${cfg.MUSIC_SECTION}/all?type=10&track.title=${encodeURIComponent(t.title)}&artist.title=${encodeURIComponent(t.artist)}&X-Plex-Token=${encodeURIComponent(cfg.PLEX_API_TOKEN)}`;
+          
+          const searchRes = await fetch(searchUrl);
+          if (!searchRes.ok) {
+            out(`  Could not search Plex library: ${searchRes.status} ${searchRes.statusText}`);
+            continue;
+          }
+          
+          const searchXml = await searchRes.text();
+          const searchDoc = xmlToDoc(searchXml);
+          const foundTracks = Array.from(searchDoc.querySelectorAll('Track'));
+          
+          if (foundTracks.length === 0) {
+            out(`  Track not found in Plex library - skipping`);
+            continue;
+          }
+          
+          // Use the first match
+          trackId = foundTracks[0].getAttribute('ratingKey');
+          out(`  Found in Plex library (ID: ${trackId})`);
+        } catch (err) {
+          out(`  Error searching Plex: ${err.message}`);
+          continue;
+        }
+      } else {
+        // Extract numeric ID from key (e.g., /library/metadata/44833 -> 44833)
+        trackId = t.key.split('/').pop();
+      }
+      
+      out(`>>> Requesting sonically similar for: ${t.title} - ${t.artist}`);
+      try {
+        const maxDistance = parseFloat($('maxDistance').value) || 0.15;
+        const sonicUrl = `${cfg.PLEX_SERVER_URL.replace(/\/$/, '')}/library/metadata/${trackId}/nearest?limit=${perTrack}&maxDistance=${maxDistance}&X-Plex-Token=${encodeURIComponent(cfg.PLEX_API_TOKEN)}`;
+        out(`  Searching for sonically similar tracks (maxDistance=${maxDistance})...`);
+        
+        const sonicRes = await fetch(sonicUrl);
+        if (!sonicRes.ok) {
+          out(`  Sonically Similar failed: ${sonicRes.status} ${sonicRes.statusText}`);
+          continue;
+        }
+        
+        const sonicXml = await sonicRes.text();
+        const sonicDoc = xmlToDoc(sonicXml);
+        const similarTracks = Array.from(sonicDoc.querySelectorAll('Track'));
+        
+        if (!similarTracks.length) {
+          out(`  No sonically similar tracks found`);
+          continue;
+        }
+        
+        out(`  * Got ${similarTracks.length} sonically similar tracks`);
+        
+        similarTracks.forEach(track => {
+          const rk = track.getAttribute('ratingKey');
+          const artist = track.getAttribute('grandparentTitle') || '';
+          const trackName = track.getAttribute('title') || '';
+          
+          if (artist && trackName) {
+            // Skip if this is the same track we're searching from
+            if (rk === trackId) {
+              out(`  - Skipping ${artist} - ${trackName} (same as source track)`);
+              return;
+            }
+            
+            // Check if already in playlist
+            if (existingKeys.has(rk)) {
+              out(`  - Skipping ${artist} - ${trackName} (already in playlist)`);
+              return;
+            }
+            
+            // Check last played date
+            const lastViewed = parseInt(track.getAttribute('lastViewedAt') || '0', 10);
+            const daysSinceLastView = lastViewed ? (Date.now()/1000 - lastViewed) / 86400 : Infinity;
+            if (daysSinceLastView < notPlayedDays) {
+              out(`  - Skipping ${artist} - ${trackName} (played ${Math.floor(daysSinceLastView)} days ago)`);
+              return;
+            }
+            
+            const artistTrimmed = artist.trim();
+            const trackTrimmed = trackName.trim();
+            allPairs.push({ artist: artistTrimmed, track: trackTrimmed });
+            out(`  - ${artist} - ${trackName}`);
+            
+            // Track artist counts from Sonically Similar (only once per unique artist-track pair)
+            if (artistTrimmed) {
+              const canonKey = `${artistTrimmed.toLowerCase().trim()}|${trackTrimmed.toLowerCase().trim()}`;
+              if (!seenPairsForArtistTracking.has(canonKey)) {
+                seenPairsForArtistTracking.add(canonKey);
+                artistCounts[artistTrimmed] = (artistCounts[artistTrimmed] || 0) + 1;
+                
+                // Track the details
+                if (!artistDetails[artistTrimmed]) {
+                  artistDetails[artistTrimmed] = [];
+                }
+                artistDetails[artistTrimmed].push({
+                  track: trackTrimmed,
+                  source: 'Sonically Similar'
+                });
+              }
+            }
+          }
+        });
+        
+      } catch (err) {
+        out(`Sonically Similar ERROR: ${err.message}`);
+      }
+    }
     out('');
   }
 
@@ -1224,7 +1563,7 @@ $('generateForm').addEventListener('submit', async (e) => {
   out('');
   out(`TRACK_RATING_KEYS = [${ratingKeys.join(', ')}]`);
   out('');
-  
+
   // Generate createplaylist.py
   const pythonScript = `import re
 from urllib.parse import unquote
@@ -1233,10 +1572,10 @@ from plexapi.playlist import Playlist
 
 # --- Configuration: UPDATE THESE VALUES ---
 # 1. Your Plex Server URL (e.g., 'http://192.168.1.10:32400')
-BASEURL = '${cfg.PLEX_SERVER_URL}' 
+BASEURL = '${cfg.PLEX_SERVER_URL}'
 
 # 2. Your Plex Token (The 'X-Plex-Token' value)
-PLEX_TOKEN = '${cfg.PLEX_API_TOKEN}' 
+PLEX_TOKEN = '${cfg.PLEX_API_TOKEN}'
 
 # 3. Define the desired playlist title
 PLAYLIST_TITLE = '${newTitle}'
@@ -1254,7 +1593,7 @@ def create_plex_playlist_from_keys(baseurl, token, title, rating_keys):
         # 1. Connect to Plex Server
         print("Connecting to Plex server...")
         plex = PlexServer(baseurl, token)
-        
+
         # 2. Construct the Track Keys used by fetchItem()
         # The key required by plex.fetchItem is in the format: /library/metadata/{id}
         track_keys = [f"/library/metadata/{key}" for key in rating_keys]
@@ -1262,7 +1601,7 @@ def create_plex_playlist_from_keys(baseurl, token, title, rating_keys):
         # 3. Fetch the actual Plex media objects (tracks)
         playlist_items = []
         print("Fetching track metadata from Plex...")
-        
+
         for track_key in track_keys:
             try:
                 # Retrieve the actual track object using its key
@@ -1278,23 +1617,23 @@ def create_plex_playlist_from_keys(baseurl, token, title, rating_keys):
 
         # 4. Create the Playlist
         print(f"Creating playlist: **{title}** with {len(playlist_items)} tracks...")
-        
+
         # Use the create method, passing the list of track objects
         new_playlist = Playlist.create(
-            server=plex, 
-            title=title, 
-            items=playlist_items, 
+            server=plex,
+            title=title,
+            items=playlist_items,
             smart=False
         )
 
         print("\\n---")
-        print(f"✓ Playlist created successfully!")
+        print(f"? Playlist created successfully!")
         print(f"Title: **{new_playlist.title}**")
         print(f"Total Tracks: **{new_playlist.leafCount}**")
         print(f"Plex Key: {new_playlist.key}")
 
     except Exception as e:
-        print(f"\\n✗ An error occurred: {e}")
+        print(f"\\n? An error occurred: {e}")
         print("Please check your BASEURL and PLEX_TOKEN.")
 
 if __name__ == '__main__':
@@ -1311,87 +1650,95 @@ if __name__ == '__main__':
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
-  
+
   out('Generated createplaylist.py and started download.');
   out('Install PlexAPI if needed: pip install PlexAPI');
   out('Then run: python createplaylist.py');
-  
+
   // Show the download button after generation completes
   $('downloadBtnContainer').style.display = 'block';
-  
+
   // Generate "Artists to Check Out" section
   out('');
   out('--- Analyzing Artists to Check Out ---');
+
+  // Fetch all artists from Plex library at once
   out('Fetching all artists from your Plex library...');
+  const allArtistsUrl = `${cfg.PLEX_SERVER_URL.replace(/\/$/, '')}/library/sections/${encodeURIComponent(cfg.MUSIC_SECTION)}/all?type=8&X-Plex-Token=${encodeURIComponent(cfg.PLEX_API_TOKEN)}`;
   
-  // Fetch ALL artists from Plex library in one API call for efficient comparison
-  let allPlexArtists = new Set();
+  let userArtistsSet = new Set();
   try {
-    const allArtistsUrl = `${cfg.PLEX_SERVER_URL.replace(/\/$/, '')}/library/sections/${encodeURIComponent(cfg.MUSIC_SECTION)}/all?type=8&X-Plex-Token=${encodeURIComponent(cfg.PLEX_API_TOKEN)}`;
     const r = await fetchUrl(allArtistsUrl);
     if (r.ok) {
       const d = xmlToDoc(r.body);
-      const artists = Array.from(d.querySelectorAll('Directory'));
-      artists.forEach(artist => {
-        const artistName = artist.getAttribute('title');
+      const artistElements = Array.from(d.querySelectorAll('Directory'));
+      
+      // Normalize artist name for matching (remove special chars, lowercase)
+      const normalizeArtist = (name) => name.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
+      
+      artistElements.forEach(artistEl => {
+        const artistName = artistEl.getAttribute('title') || '';
         if (artistName) {
-          // Normalize artist name for comparison (lowercase, trimmed)
-          allPlexArtists.add(artistName.toLowerCase().trim());
+          const normalized = normalizeArtist(artistName);
+          userArtistsSet.add(normalized);
         }
       });
-      out(`Found ${allPlexArtists.size} artists in your Plex library`);
+      
+      out(`✓ Found ${userArtistsSet.size} artists in your library`);
     } else {
-      out(`Warning: Could not fetch artist list (${r.error})`);
+      out(`⚠️ Could not fetch artists from library: ${r.error}`);
     }
   } catch (err) {
-    out(`Warning: Error fetching artist list (${err.message})`);
+    out(`⚠️ Error fetching artists: ${err.message}`);
   }
   
   out('');
-  
+
   // Sort artists by recommendation count (descending)
   const sortedArtists = Object.entries(artistCounts)
     .sort((a, b) => b[1] - a[1]);
-  
+
   const artistsToCheckOut = [];
-  
+  const normalizeArtist = (name) => name.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
+
+  // Check each recommended artist against user's library
   for (const [artist, count] of sortedArtists) {
     if (artistsToCheckOut.length >= 10) break;
+
+    const normalizedArtist = normalizeArtist(artist);
     
-    const artistLower = artist.toLowerCase().trim();
-    
-    if (!allPlexArtists.has(artistLower)) {
+    if (!userArtistsSet.has(normalizedArtist)) {
       // Artist not in collection
       artistsToCheckOut.push({ artist, count });
-      out(`✓ ${artist} - Not in collection (recommended ${count} time${count > 1 ? 's' : ''})`);
+      out(`- ${artist} - Not in collection (recommended ${count} time${count > 1 ? 's' : ''})`);
     } else {
       out(`  ${artist} - Already in collection`);
     }
   }
-  
+
   out('');
   if (artistsToCheckOut.length > 0) {
     out(`Found ${artistsToCheckOut.length} new artist${artistsToCheckOut.length > 1 ? 's' : ''} to check out!`);
-    
+
     // Display in the UI
     const container = $('artistsToCheckOutContainer');
     const list = $('artistsToCheckOutList');
     list.innerHTML = '';
-    
+
     artistsToCheckOut.forEach(({ artist, count }, index) => {
       const li = document.createElement('li');
       const detailsId = `artist-details-${index}`;
-      
+
       li.innerHTML = `
-        <strong>${artist}</strong> 
+        <strong>${artist}</strong>
         <span class="text-muted small">
           (<span class="artist-details-link" onclick="toggleArtistDetails('${detailsId}')">recommended ${count} time${count > 1 ? 's' : ''}</span>)
         </span>
         <div id="${detailsId}" class="artist-details"></div>
       `;
-      
+
       list.appendChild(li);
-      
+
       // Populate the details
       const detailsDiv = document.getElementById(detailsId);
       if (artistDetails[artist]) {
@@ -1403,7 +1750,7 @@ if __name__ == '__main__':
         });
       }
     });
-    
+
     container.style.display = 'block';
   } else {
     out('No new artists to recommend (you have all recommended artists in your collection)');

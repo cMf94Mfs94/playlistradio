@@ -6,11 +6,10 @@ A browser-based tool that generates AI-powered "radio" playlists for Plex based 
 
 Playlist Radio analyzes tracks in your existing Plex playlists and uses AI to recommend similar songs you already own. It generates a Python script that creates a new playlist in Plex with all the discovered tracks.
 
-## Features
+## Main Features
 
-- **Artist Discovery**: Automatically identifies the most recommended artists not in your collection with detailed breakdown
-- **Last.FM Recommendations Integration**: Automatically fetch your personalized Last.FM recommendations (up to 100 tracks across 5 pages)
-- **Dual API Support**: Use OpenAI, Last.FM, or both simultaneously for recommendations
+
+- **Multiple Recommendation Sources**: Use OpenAI, Last.FM, Reccobeats, Plex Sonic Analysis, or any combination simultaneously
 - **Smart Track Selection**: Option to use a random percentage of tracks from large playlists
 - **Customizable Prompts**: Full control over OpenAI prompts with variable substitution
 - **Duplicate Detection**: Automatically removes duplicate recommendations across sources
@@ -18,6 +17,12 @@ Playlist Radio analyzes tracks in your existing Plex playlists and uses AI to re
 - **API Call Preview**: See estimated API usage before generating
 - **Overwrite Protection**: Warns if playlist name already exists
 - **Browser-Based**: No server setup required - runs entirely in your browser
+
+## Additional Features
+
+- **Artist Discovery**: Automatically identifies the most recommended artists not in your collection with detailed breakdown
+- **Last.FM Recommendations Integration**: Automatically fetch your personalized Last.FM recommendations (up to 100 tracks across 5 pages)
+- **Plex Sonic Analysis**: Use Plex's built-in sonic similarity to find tracks with similar audio characteristics (no external API needed)
 
 ## Setup Instructions
 
@@ -52,6 +57,8 @@ Playlist Radio analyzes tracks in your existing Plex playlists and uses AI to re
 
 - **Last.FM API Key**: Enable Last.FM as an additional recommendation source
 - **Last.FM Username**: Enable the "Last FM Recos" virtual playlist feature (fetches your personalized recommendations)
+- **Spotify Client ID & Secret**: Enable Reccobeats as a recommendation source (uses Spotify's metadata to find tracks via Reccobeats API)
+- **Sonic Similarity**: Configure Plex's sonic analysis threshold (0.1-1.0, where lower = more similar)
 
 4. Click **Save** to store settings in your browser's localStorage
 
@@ -115,7 +122,39 @@ If you've configured your **Last.FM Username** in Settings, a special virtual pl
 #### APIs (Select at Least One)
 - **OpenAI**: Uses ChatGPT to generate contextual recommendations
 - **Last.FM**: Uses Last.FM's track similarity database
-- **Both**: Combines results from both sources with deduplication
+- **Reccobeats**: Uses Reccobeats API with Spotify metadata for recommendations
+- **Sonically Similar**: Uses Plex's built-in sonic analysis to find tracks with similar audio characteristics
+- **Multiple**: Combines results from any combination of sources with deduplication
+
+#### Sonically Similar (Plex Sonic Analysis)
+
+The **Sonically Similar** feature uses Plex's native audio analysis to find tracks with similar sonic characteristics:
+
+##### How It Works
+1. **Built-in Analysis**: Plex analyzes audio fingerprints of tracks in your library
+2. **No External API**: Uses Plex's internal `/library/metadata/{id}/nearest` endpoint
+3. **Configurable Similarity**: Adjust the "Sonic Similarity" threshold (0.1 to 1.0)
+   - **Lower values** (e.g., 0.10) = more similar tracks (stricter matching)
+   - **Higher values** (e.g., 0.50) = broader variety (looser matching)
+4. **Library-Only**: Only finds tracks already in your Plex library
+
+##### Configuration
+- **In Settings**: Set a default Sonic Similarity value (e.g., 0.15)
+- **Per Playlist**: Adjust the value with +/- buttons for each generation
+- **Auto-Enable**: Checkbox automatically checked if you've configured a similarity value
+
+##### Benefits
+- **No API Costs**: Uses your existing Plex server infrastructure
+- **Audio-Based**: Finds songs that *sound* similar, not just similar metadata
+- **Works with Last.FM Recos**: Automatically searches your library for Last.FM recommendations and uses them as seeds
+- **Complementary**: Combine with OpenAI/Last.FM for best results (metadata + sonic similarity)
+
+##### Example Use Case
+```
+Playlist: 10 jazz tracks
+Sonic Similarity: 0.12 (very similar)
+Result: Finds jazz tracks in your library with similar tempo, instrumentation, and mood
+```
 
 #### Not Played in Last X Days
 - Filters out recently played tracks from recommendations
@@ -162,12 +201,15 @@ The blue info box shows estimated API calls before you generate:
 2. **API Requests**: For each track, requests similar tracks from enabled APIs:
    - **OpenAI**: Sends customized prompt to ChatGPT
    - **Last.FM**: Queries their track similarity database
+   - **Reccobeats**: Searches Spotify metadata and queries Reccobeats API
+   - **Sonically Similar**: Uses Plex's built-in audio analysis to find similar-sounding tracks
 3. **Candidate Collection**: Parses responses and builds list of recommended tracks
 4. **Plex Search**: Searches your Plex library for each recommended track by artist + title
 5. **Filtering**: 
    - Removes tracks already in the source playlist
    - Skips recently played tracks (based on "not played in X days")
-   - Deduplicates across both API sources using canonical matching
+   - Deduplicates across all API sources using canonical matching
+   - For Sonically Similar: Excludes the source track itself from results
 6. **Script Generation**: Creates a Python script with all matched track IDs
 7. **Download**: Automatically downloads the script to your computer
 
@@ -197,6 +239,8 @@ After generating a playlist, a new **"Artists to Check Out"** section appears be
    - Last.FM Recommendations (if using "Last FM Recos" playlist)
    - OpenAI API responses
    - Last.FM API responses
+   - Reccobeats API responses
+   - Sonically Similar (Plex sonic analysis)
 
 2. **Single API Call**: Fetches all artists in your Plex library with one efficient query (no individual lookups)
 
@@ -301,7 +345,7 @@ The output log shows:
 
 ## Technical Details
 
-- **Single File Application**: Everything in `index.html` (~1,250 lines)
+- **Single File Application**: Everything in `index.html` (~1,800 lines)
 - **No Dependencies**: Pure vanilla JavaScript, no frameworks
 - **Storage**: Browser localStorage for configuration persistence
 - **CORS Proxy**: Uses `corsproxy.io` to fetch Last.FM recommendations (bypasses browser CORS restrictions)
@@ -310,6 +354,8 @@ The output log shows:
   - OpenAI Chat Completions API
   - Last.FM Track Similarity API
   - Last.FM Player Station API (for personalized recommendations)
+  - Reccobeats API (with Spotify metadata lookup)
+  - Plex Sonic Analysis API (`/library/metadata/{id}/nearest`)
 
 ## License
 
