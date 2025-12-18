@@ -146,8 +146,9 @@
               <input id="NOT_PLAYED_IN_LAST_X_DAYS" class="form-control" type="number" value="30">
             </div>
             <div class="mb-2">
-              <label class="form-label">Sonic Similarity (0.1 to 1.0) <small class="text-muted">lower = more similar</small></label>
-              <input id="SONIC_SIMILARITY" class="form-control" type="number" placeholder="0.15" step="0.01" min="0.1" max="1.0">
+              <label class="form-label">Sonic Similarity Percentage</label>
+              <input id="SONIC_SIMILARITY" class="form-control" type="number" placeholder="85" step="1" min="1" max="100">
+              <small class="text-muted">higher = more similar (1-100)</small>
             </div>
             <div class="mb-2">
               <label class="form-label">OpenAI API Key</label>
@@ -235,12 +236,13 @@
           </div>
           <div class="row">
             <div class="col-md-6 mb-2">
-              <label class="form-label">Sonic Similarity (0.1 to 1.0) <small class="text-muted">lower = more similar</small></label>
+              <label class="form-label">Sonic Similarity Percentage</label>
               <div class="d-flex gap-2">
-                <input id="maxDistance" type="number" class="form-control" value="0.15" step="0.01" min="0.1" max="1.0">
-                <button class="btn btn-outline-secondary" type="button" onclick="const el = $('maxDistance'); el.value = Math.min(1.0, (parseFloat(el.value) + 0.01).toFixed(2));">+</button>
-                <button class="btn btn-outline-secondary" type="button" onclick="const el = $('maxDistance'); el.value = Math.max(0.1, (parseFloat(el.value) - 0.01).toFixed(2));">-</button>
+                <input id="maxDistance" type="number" class="form-control" value="85" step="1" min="1" max="100">
+                <button class="btn btn-outline-secondary" type="button" onclick="const el = $('maxDistance'); el.value = Math.min(100, parseInt(el.value) + 1);">+</button>
+                <button class="btn btn-outline-secondary" type="button" onclick="const el = $('maxDistance'); el.value = Math.max(1, parseInt(el.value) - 1);">-</button>
               </div>
+              <small class="text-muted">higher = more similar</small>
             </div>
           </div>
         </div>
@@ -394,7 +396,7 @@ function getConfig() {
       MUSIC_SECTION: localStorage.getItem('MUSIC_SECTION') || '',
       NUMBER_OF_SIMILAR_TRACKS: parseInt(localStorage.getItem('NUMBER_OF_SIMILAR_TRACKS') || '10'),
       NOT_PLAYED_IN_LAST_X_DAYS: parseInt(localStorage.getItem('NOT_PLAYED_IN_LAST_X_DAYS') || '30'),
-      SONIC_SIMILARITY: localStorage.getItem('SONIC_SIMILARITY') || '',
+      SONIC_SIMILARITY: localStorage.getItem('SONIC_SIMILARITY') || '85',
       SIMULATION_MODE: localStorage.getItem('SIMULATION_MODE') || 'Yes',
       OPENAI_KEY: localStorage.getItem('OPENAI_KEY') || '',
       CHATGPT_MODEL: localStorage.getItem('CHATGPT_MODEL') || 'gpt-3.5-turbo',
@@ -806,7 +808,7 @@ async function viewPlaylist(id, title) {
   $('perTrack').value = cfg.NUMBER_OF_SIMILAR_TRACKS;
   // Only set maxDistance if it's empty (first load)
   if (!$('maxDistance').value) {
-    $('maxDistance').value = cfg.SONIC_SIMILARITY || '';
+    $('maxDistance').value = cfg.SONIC_SIMILARITY || '85';
   }
 
   // Check if this is the Last FM Recos virtual playlist
@@ -818,7 +820,7 @@ async function viewPlaylist(id, title) {
     $('useOpenAI').checked = !!(cfg.OPENAI_KEY && cfg.OPENAI_KEY.trim());
     $('useLastFM').checked = !!(cfg.LASTFM_API_KEY && cfg.LASTFM_API_KEY.trim());
     $('useReccobeats').checked = false; // Reccobeats not selected by default
-    $('useSonicallySimilar').checked = !!(cfg.SONIC_SIMILARITY && cfg.SONIC_SIMILARITY !== ''); // Auto-check if value set
+    $('useSonicallySimilar').checked = !!(cfg.SONIC_SIMILARITY); // Auto-check if value set
 
     $('openaiPrompt').value = `I like the following song: {TRACK} by {ARTIST}\nName {N} tracks by different artists that I would also like. Provide each as 'Artist - Track Title' on its own line.`;
 
@@ -947,7 +949,7 @@ async function viewPlaylist(id, title) {
   $('useOpenAI').checked = !!(cfg.OPENAI_KEY && cfg.OPENAI_KEY.trim());
   $('useLastFM').checked = !!(cfg.LASTFM_API_KEY && cfg.LASTFM_API_KEY.trim());
   $('useReccobeats').checked = false; // Reccobeats not selected by default
-  $('useSonicallySimilar').checked = !!(cfg.SONIC_SIMILARITY && cfg.SONIC_SIMILARITY !== ''); // Auto-check if value set
+  $('useSonicallySimilar').checked = !!(cfg.SONIC_SIMILARITY); // Auto-check if value set
 
   $('openaiPrompt').value = `I like the following song: {TRACK} by {ARTIST}\nName {N} tracks by different artists that I would also like. Provide each as 'Artist - Track Title' on its own line.`;
 
@@ -1423,9 +1425,10 @@ $('generateForm').addEventListener('submit', async (e) => {
       
       out(`>>> Requesting sonically similar for: ${t.title} - ${t.artist}`);
       try {
-        const maxDistance = parseFloat($('maxDistance').value) || 0.15;
+        const percentage = parseInt($('maxDistance').value) || 85;
+        const maxDistance = (100 - percentage) / 100; // Convert percentage to maxDistance (higher % = lower distance)
         const sonicUrl = `${cfg.PLEX_SERVER_URL.replace(/\/$/, '')}/library/metadata/${trackId}/nearest?limit=${perTrack}&maxDistance=${maxDistance}&X-Plex-Token=${encodeURIComponent(cfg.PLEX_API_TOKEN)}`;
-        out(`  Searching for sonically similar tracks (maxDistance=${maxDistance})...`);
+        out(`  Searching for sonically similar tracks (percentage=${percentage}%, maxDistance=${maxDistance.toFixed(2)})...`);
         
         const sonicRes = await fetch(sonicUrl);
         if (!sonicRes.ok) {

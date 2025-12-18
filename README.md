@@ -58,7 +58,7 @@ Playlist Radio analyzes tracks in your existing Plex playlists and uses AI to re
 - **Last.FM API Key**: Enable Last.FM as an additional recommendation source
 - **Last.FM Username**: Enable the "Last FM Recos" virtual playlist feature (fetches your personalized recommendations)
 - **Spotify Client ID & Secret**: Enable Reccobeats as a recommendation source (uses Spotify's metadata to find tracks via Reccobeats API)
-- **Sonic Similarity**: Configure Plex's sonic analysis threshold (0.1-1.0, where lower = more similar)
+- **Sonic Similarity Percentage**: Configure Plex's sonic analysis threshold (1-100, where higher = more similar, default: 85)
 
 4. Click **Save** to store settings in your browser's localStorage
 
@@ -133,15 +133,16 @@ The **Sonically Similar** feature uses Plex's native audio analysis to find trac
 ##### How It Works
 1. **Built-in Analysis**: Plex analyzes audio fingerprints of tracks in your library
 2. **No External API**: Uses Plex's internal `/library/metadata/{id}/nearest` endpoint
-3. **Configurable Similarity**: Adjust the "Sonic Similarity" threshold (0.1 to 1.0)
-   - **Lower values** (e.g., 0.10) = more similar tracks (stricter matching)
-   - **Higher values** (e.g., 0.50) = broader variety (looser matching)
+3. **Configurable Similarity**: Adjust the "Sonic Similarity Percentage" (1 to 100)
+   - **Higher values** (e.g., 95) = more similar tracks (stricter matching)
+   - **Lower values** (e.g., 50) = broader variety (looser matching)
+   - **Default**: 85 (good balance between similarity and variety)
 4. **Library-Only**: Only finds tracks already in your Plex library
 
 ##### Configuration
-- **In Settings**: Set a default Sonic Similarity value (e.g., 0.15)
-- **Per Playlist**: Adjust the value with +/- buttons for each generation
-- **Auto-Enable**: Checkbox automatically checked if you've configured a similarity value
+- **In Settings**: Set a default Sonic Similarity Percentage (e.g., 85)
+- **Per Playlist**: Adjust the value with +/- buttons (1-100 range) for each generation
+- **Auto-Enable**: Checkbox automatically checked since default is configured
 
 ##### Benefits
 - **No API Costs**: Uses your existing Plex server infrastructure
@@ -152,7 +153,7 @@ The **Sonically Similar** feature uses Plex's native audio analysis to find trac
 ##### Example Use Case
 ```
 Playlist: 10 jazz tracks
-Sonic Similarity: 0.12 (very similar)
+Sonic Similarity: 88% (very similar)
 Result: Finds jazz tracks in your library with similar tempo, instrumentation, and mood
 ```
 
